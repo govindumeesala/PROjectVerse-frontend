@@ -1,12 +1,10 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { FaUserCircle } from "react-icons/fa"; // Profile Icon
-import { AiOutlinePlus } from "react-icons/ai"; // Plus Icon
-import { AiOutlineMenu } from "react-icons/ai"; // menu icon
+import { AiOutlinePlus, AiOutlineMenu } from "react-icons/ai"; // Plus & Menu Icons
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
@@ -21,22 +19,33 @@ import {
 } from "@/components/ui/sheet";
 import { Separator } from "./ui/separator";
 import { Button } from "@/components/ui/button";
+import { useLogoutUser } from "../api/userApi";
 
 const Navbar = () => {
-  const [isLoggedIn, setIsLoggedIn] = useState(true); // Change this based on auth state
+  // Set initial login state based on whether a token exists in localStorage
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(!!localStorage.getItem("token"));
+  const { logout } = useLogoutUser();
+  const navigate = useNavigate();
+
+  // Optional: listen for changes in localStorage if needed (or use a global auth context)
+  useEffect(() => {
+    setIsLoggedIn(!!localStorage.getItem("token"));
+  }, []);
+
+  const handleLogout = () => {
+    logout();
+    setIsLoggedIn(false);
+  };
 
   return (
     <nav className="bg-blue-900 text-white px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16 py-4 fixed w-full shadow-lg z-50">
       <div className="flex justify-between items-center max-w-7xl mx-auto w-full">
         {/* Logo */}
-        <Link
-          to="/"
-          className="text-xl sm:text-2xl font-semibold tracking-wide"
-        >
+        <Link to="/" className="text-xl sm:text-2xl font-semibold tracking-wide">
           PROjectVerse
         </Link>
 
-        {/* mobile navbar */}
+        {/* Mobile Navbar */}
         <div className="md:hidden">
           <Sheet>
             <SheetTrigger className="text-white text-2xl">
@@ -46,39 +55,34 @@ const Navbar = () => {
               <SheetHeader className="py-2">
                 {isLoggedIn ? (
                   <div>
-                  <div className="flex items-center gap-2">
-                    <SheetTitle className="text-lg font-semibold">
-                      John Doe
-                    </SheetTitle>
-                    <FaUserCircle size={25} className="text-blue-800" />
-                  </div>
-                  <Separator className="mt-4 px-2"></Separator>
+                    <div className="flex items-center gap-2">
+                      <SheetTitle className="text-lg font-semibold">John Doe</SheetTitle>
+                      <FaUserCircle size={25} className="text-blue-800" />
+                    </div>
+                    <Separator className="mt-4 px-2" />
                   </div>
                 ) : (
                   <>
-                    <SheetTitle className="text-lg font-semibold">
-                      Welcome to PROjectVerse
-                    </SheetTitle>
-                    <Separator className="px-2"></Separator>
+                    <SheetTitle className="text-lg font-semibold">Welcome to PROjectVerse</SheetTitle>
+                    <Separator className="px-2" />
                     <SheetDescription className="text-gray-600">
                       Login to explore and manage projects.
                     </SheetDescription>
-                    <Button className="w-full mt-4 bg-blue-800 hover:bg-blue-900 text-white">
+                    <Button onClick={() => navigate("/auth/login")} className="w-full mt-4 bg-blue-800 hover:bg-blue-900 text-white">
                       Log In
                     </Button>
                   </>
                 )}
               </SheetHeader>
-
               {isLoggedIn && (
                 <div className="mt-0 px-4">
-                  <Link
-                    to='/profile'
-                    className="w-full text-left text-gray-800"
-                  >
+                  <Link to="/profile" className="w-full text-left text-gray-800">
                     Profile
                   </Link>
-                  <Button className="w-full mt-2 bg-blue-600 hover:bg-red-700 text-white">
+                  <Button
+                    onClick={handleLogout}
+                    className="w-full mt-2 bg-blue-600 hover:bg-red-700 text-white"
+                  >
                     Log Out
                   </Button>
                 </div>
@@ -87,11 +91,10 @@ const Navbar = () => {
           </Sheet>
         </div>
 
-        {/* main nav bar for screens from tablets */}
+        {/* Main Navbar for Tablets and Larger Screens */}
         <div className="hidden md:block">
-          {/* Navigation Links */}
           <div className="flex space-x-6 text-lg">
-            {/* Create Project Button */}
+            {/* Create Project Button (only visible when logged in) */}
             {isLoggedIn && (
               <Link
                 to="/create-project"
@@ -102,19 +105,11 @@ const Navbar = () => {
               </Link>
             )}
 
-            {/* Profile/Login Section */}
+            {/* Profile / Login Section */}
             {isLoggedIn ? (
-              // Only show profile icon if logged in
-              // <Link to="/profile" className="hover:text-yellow-400">
-              //   <FaUserCircle size={26} />
-              // </Link>
-
               <DropdownMenu>
                 <DropdownMenuTrigger>
-                  <FaUserCircle
-                    size={26}
-                    className="cursor-pointer hover:text-gray-300 transition"
-                  />
+                  <FaUserCircle size={26} className="cursor-pointer hover:text-gray-300 transition" />
                 </DropdownMenuTrigger>
                 <DropdownMenuContent className="bg-white shadow-lg rounded-lg p-2 w-30">
                   <DropdownMenuLabel className="font-semibold text-gray-700">
@@ -122,15 +117,17 @@ const Navbar = () => {
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator className="border-t border-gray-300 mx-2 my-1 mb-2" />
                   <div className="flex justify-center">
-                    <Button className="bg-blue-800 hover:bg-blue-900 text-white px-4 py-2 rounded-md w-full">
+                    <Button
+                      onClick={handleLogout}
+                      className="bg-blue-800 hover:bg-blue-900 text-white px-4 py-2 rounded-md w-full"
+                    >
                       Log out
                     </Button>
                   </div>
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
-              // Show "Login" text if not logged in
-              <Link to="/login" className="hover:text-yellow-400">
+              <Link to="/auth/login" className="hover:text-yellow-400">
                 Login
               </Link>
             )}
