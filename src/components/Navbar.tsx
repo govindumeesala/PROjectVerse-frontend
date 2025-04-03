@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/sheet";
 import { Separator } from "./ui/separator";
 import { Button } from "@/components/ui/button";
-import { useLogoutUser } from "../api/userApi";
+import { useLogoutUser } from "../api/authApi";
 
 const Navbar = () => {
   // Set initial login state based on whether a token exists in localStorage

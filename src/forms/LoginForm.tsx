@@ -4,7 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { useLoginUser } from "../api/userApi";
+import { useLoginUser } from "../api/authApi";
 
 const loginSchema = z.object({
   email: z.string().email("Invalid email"),
