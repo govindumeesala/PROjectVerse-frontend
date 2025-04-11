@@ -25,7 +25,9 @@ const LoginSignupPage = () => {
           </span>
         </p>
 
-        <GoogleLoginButton />
+        <div className="mt-6 flex justify-center">
+      <GoogleLoginButton />
+    </div>
       </div>
     </div>
   );

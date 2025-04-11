@@ -65,7 +65,7 @@ export const SignupForm = () => {
             </FormItem>
           )}
         />
-        <Button type="submit" disabled={isPending} className="w-full bg-blue-900 hover:bg-blue-800">
+        <Button type="submit" disabled={isPending} className="w-full bg-blue-900 hover:bg-blue-800 cursor-pointer">
           {isPending ? "Signing Up..." : "Sign Up"}
         </Button>
       </form>

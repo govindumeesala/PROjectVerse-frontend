@@ -51,7 +51,7 @@ export const LoginForm = () => {
             </FormItem>
           )}
         />
-        <Button type="submit" disabled={isPending} className="w-full bg-blue-900 hover:bg-blue-800">
+        <Button type="submit" disabled={isPending} className="w-full bg-blue-900 hover:bg-blue-800 cursor-pointer">
           {isPending ? "Logging In..." : "Log In"}
         </Button>
       </form>
