@@ -22,11 +22,10 @@ export const useSignupUser = () => {
       });
       navigate("/profile");
     },
-    onError: (error) => {
+    onError: (error: any) => {
       console.error("Signup error:", error);
-      toast.error("Error signing up", {
-        description: "Please try again.",
-      });
+      const errMsg = error?.response?.data?.message || "Please try again.";
+      toast.error("Error signing up", { description: errMsg });
     },
   });
   return { signup, isPending, isError, isSuccess };
@@ -51,14 +50,41 @@ export const useLoginUser = () => {
       });
       navigate("/profile");
     },
-    onError: (error) => {
+    onError: (error: any) => {
       console.error("Login error:", error);
-      toast.error("Error logging in", {
-        description: "Invalid credentials. Please try again.",
-      });
+      const errMsg = error?.response?.data?.message || "Invalid credentials. Please try again.";
+      toast.error("Error logging in", { description: errMsg });
     },
   });
   return { login, isPending, isError, isSuccess };
+};
+
+// --- Google Login --- //
+type GoogleLoginData = { idToken: string };
+
+export const googleLoginUser = async (data: GoogleLoginData): Promise<any> => {
+  const response = await axios.post("http://localhost:3000/api/auth/google", data);
+  return response.data;
+};
+
+export const useGoogleLogin = () => {
+  const navigate = useNavigate();
+  const { mutateAsync: googleLogin, isPending, isError, isSuccess } = useMutation({
+    mutationFn: googleLoginUser,
+    onSuccess: (data) => {
+      localStorage.setItem("token", data.data.token);
+      toast.success("Successfully logged in with Google", {
+        description: "Enjoy exploring PROjectVerse!",
+      });
+      navigate("/profile");
+    },
+    onError: (error: any) => {
+      console.error("Google login error:", error);
+      const errMsg = error?.response?.data?.message || "Google authentication failed. Please try again.";
+      toast.error("Error with Google login", { description: errMsg });
+    },
+  });
+  return { googleLogin, isPending, isError, isSuccess };
 };
 
 // --- Logout --- //
