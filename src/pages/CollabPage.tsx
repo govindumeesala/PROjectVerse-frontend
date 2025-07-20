@@ -1,5 +1,5 @@
 const CollabPage = () => {
-    return <span>Collab page</span>
+    return <span>This is Collab page</span>
 }
 
 export default CollabPage;
