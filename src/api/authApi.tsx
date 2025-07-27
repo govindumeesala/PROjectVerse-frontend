@@ -6,8 +6,10 @@ import { toast } from "sonner";
 // --- Signup --- //
 type SignupData = { name: string; email: string; password: string };
 
+const base_api = import.meta.env.VITE_BASE_API
+
 export const signupUser = async (data: SignupData): Promise<any> => {
-  const response = await axios.post("http://localhost:3000/api/auth/signup", data);
+  const response = await axios.post(`${base_api}/auth/signup`, data);
   return response.data;
 };
 
@@ -35,7 +37,7 @@ export const useSignupUser = () => {
 type LoginData = { email: string; password: string };
 
 export const loginUser = async (data: LoginData): Promise<any> => {
-  const response = await axios.post("http://localhost:3000/api/auth/login", data);
+  const response = await axios.post(`${base_api}/auth/login`, data);
   return response.data;
 };
 
@@ -63,7 +65,7 @@ export const useLoginUser = () => {
 type GoogleLoginData = { idToken: string };
 
 export const googleLoginUser = async (data: GoogleLoginData): Promise<any> => {
-  const response = await axios.post("http://localhost:3000/api/auth/google", data);
+  const response = await axios.post(`${base_api}/auth/google`, data);
   return response.data;
 };
 
