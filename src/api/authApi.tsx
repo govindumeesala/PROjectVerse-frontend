@@ -1,7 +1,8 @@
 import axios from "axios";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+import { useAuthStore } from "@/store/useAuthStore";
 
 // --- Signup --- //
 type SignupData = { name: string; email: string; password: string };
@@ -14,11 +15,12 @@ export const signupUser = async (data: SignupData): Promise<any> => {
 };
 
 export const useSignupUser = () => {
+  const setAuth = useAuthStore((state) => state.setAuth);
   const navigate = useNavigate();
   const { mutateAsync: signup, isPending, isError, isSuccess } = useMutation({
     mutationFn: signupUser,
     onSuccess: (data) => {
-      localStorage.setItem("token", data.data.token);
+      setAuth(data.data.token);
       toast.success("Successfully registered", {
         description: "Welcome to PROjectVerse!",
       });
@@ -42,11 +44,12 @@ export const loginUser = async (data: LoginData): Promise<any> => {
 };
 
 export const useLoginUser = () => {
+  const setAuth = useAuthStore((state) => state.setAuth);
   const navigate = useNavigate();
-  const { mutateAsync: login, isPending, isError, isSuccess } = useMutation({
+  const { mutateAsync: loginMutation, isPending, isError, isSuccess } = useMutation({
     mutationFn: loginUser,
     onSuccess: (data) => {
-      localStorage.setItem("token", data.data.token);
+      setAuth(data.data.token);
       toast.success("Successfully logged in", {
         description: "Enjoy exploring PROjectVerse!",
       });
@@ -58,7 +61,7 @@ export const useLoginUser = () => {
       toast.error("Error logging in", { description: errMsg });
     },
   });
-  return { login, isPending, isError, isSuccess };
+  return { login: loginMutation, isPending, isError, isSuccess };
 };
 
 // --- Google Login --- //
@@ -70,11 +73,12 @@ export const googleLoginUser = async (data: GoogleLoginData): Promise<any> => {
 };
 
 export const useGoogleLogin = () => {
+  const setAuth = useAuthStore((state) => state.setAuth);
   const navigate = useNavigate();
   const { mutateAsync: googleLogin, isPending, isError, isSuccess } = useMutation({
     mutationFn: googleLoginUser,
     onSuccess: (data) => {
-      localStorage.setItem("token", data.data.token);
+      setAuth(data.data.token);
       toast.success("Successfully logged in with Google", {
         description: "Enjoy exploring PROjectVerse!",
       });
@@ -91,9 +95,12 @@ export const useGoogleLogin = () => {
 
 // --- Logout --- //
 export const useLogoutUser = () => {
+  const queryClient = useQueryClient();
   const navigate = useNavigate();
+  const clearAuth = useAuthStore((state) => state.clearAuth);
   const logout = () => {
-    localStorage.removeItem("token");
+    clearAuth();
+    queryClient.clear(); // Clear React Query cache (user-specific data)
     toast.success("Logged out", {
       description: "You have been logged out successfully.",
     });

@@ -19,23 +19,13 @@ import {
 } from "@/components/ui/sheet";
 import { Separator } from "./ui/separator";
 import { Button } from "@/components/ui/button";
-import { useLogoutUser } from "../api/authApi";
+import { useAuthStore } from "@/store/useAuthStore";
+import { useLogoutUser } from "@/api/authApi";
 
 const Navbar = () => {
-  // Set initial login state based on whether a token exists in localStorage
-  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(!!localStorage.getItem("token"));
+  const isLoggedIn = useAuthStore((state) => state.isLoggedIn);
   const { logout } = useLogoutUser();
   const navigate = useNavigate();
-
-  // Optional: listen for changes in localStorage if needed (or use a global auth context)
-  useEffect(() => {
-    setIsLoggedIn(!!localStorage.getItem("token"));
-  }, []);
-
-  const handleLogout = () => {
-    logout();
-    setIsLoggedIn(false);
-  };
 
   return (
     <nav className="bg-blue-900 text-white px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16 py-4 fixed w-full shadow-lg z-50">
@@ -80,7 +70,7 @@ const Navbar = () => {
                     Profile
                   </Link>
                   <Button
-                    onClick={handleLogout}
+                    onClick={logout}
                     className="w-full mt-2 bg-blue-600 hover:bg-red-700 text-white"
                   >
                     Log Out
@@ -118,7 +108,7 @@ const Navbar = () => {
                   <DropdownMenuSeparator className="border-t border-gray-300 mx-2 my-1 mb-2" />
                   <div className="flex justify-center">
                     <Button
-                      onClick={handleLogout}
+                      onClick={logout}
                       className="bg-blue-800 hover:bg-blue-900 text-white px-4 py-2 rounded-md w-full"
                     >
                       Log out
