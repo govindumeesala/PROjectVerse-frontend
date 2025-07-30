@@ -3,14 +3,13 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { useAuthStore } from "@/store/useAuthStore";
+import { ENDPOINTS } from "./endpoints";
 
 // --- Signup --- //
 type SignupData = { name: string; email: string; password: string };
 
-const base_api = import.meta.env.VITE_BASE_API
-
 export const signupUser = async (data: SignupData): Promise<any> => {
-  const response = await axios.post(`${base_api}/auth/signup`, data);
+  const response = await axios.post(ENDPOINTS.AUTH.SIGNUP, data);
   return response.data;
 };
 
@@ -39,7 +38,7 @@ export const useSignupUser = () => {
 type LoginData = { email: string; password: string };
 
 export const loginUser = async (data: LoginData): Promise<any> => {
-  const response = await axios.post(`${base_api}/auth/login`, data);
+  const response = await axios.post(ENDPOINTS.AUTH.LOGIN, data);
   return response.data;
 };
 
@@ -68,7 +67,7 @@ export const useLoginUser = () => {
 type GoogleLoginData = { idToken: string };
 
 export const googleLoginUser = async (data: GoogleLoginData): Promise<any> => {
-  const response = await axios.post(`${base_api}/auth/google`, data);
+  const response = await axios.post(ENDPOINTS.AUTH.GOOGLE, data);
   return response.data;
 };
 

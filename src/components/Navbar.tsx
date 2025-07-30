@@ -1,4 +1,3 @@
-import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { FaUserCircle } from "react-icons/fa"; // Profile Icon
 import { AiOutlinePlus, AiOutlineMenu } from "react-icons/ai"; // Plus & Menu Icons
