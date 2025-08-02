@@ -1,25 +1,31 @@
+// src/api/authApi.ts
 import axios from "axios";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { useAuthStore } from "@/store/useAuthStore";
-import { ENDPOINTS } from "./endpoints";
+import { ENDPOINTS } from "@/api/endpoints";
+
+type SignupData = { name: string; email: string; password: string };
+type LoginData  = { email: string; password: string };
+type GoogleData = { idToken: string };
 
 // --- Signup --- //
-type SignupData = { name: string; email: string; password: string };
-
 export const signupUser = async (data: SignupData): Promise<any> => {
-  const response = await axios.post(ENDPOINTS.AUTH.SIGNUP, data);
+  const response = await axios.post(ENDPOINTS.AUTH.SIGNUP, data, {
+    withCredentials: true, // Set cookies (refresh token)
+  });
   return response.data;
 };
 
 export const useSignupUser = () => {
-  const setAuth = useAuthStore((state) => state.setAuth);
+  const setAccessToken = useAuthStore((state) => state.setAccessToken);
   const navigate = useNavigate();
+
   const { mutateAsync: signup, isPending, isError, isSuccess } = useMutation({
     mutationFn: signupUser,
     onSuccess: (data) => {
-      setAuth(data.data.token);
+      setAccessToken(data.data.accessToken);
       toast.success("Successfully registered", {
         description: "Welcome to PROjectVerse!",
       });
@@ -31,79 +37,123 @@ export const useSignupUser = () => {
       toast.error("Error signing up", { description: errMsg });
     },
   });
+
   return { signup, isPending, isError, isSuccess };
 };
 
 // --- Login --- //
-type LoginData = { email: string; password: string };
-
-export const loginUser = async (data: LoginData): Promise<any> => {
-  const response = await axios.post(ENDPOINTS.AUTH.LOGIN, data);
+export const loginUser = async (data: LoginData) => {
+  const response = await axios.post(ENDPOINTS.AUTH.LOGIN, data, {
+    withCredentials: true,
+  });
   return response.data;
 };
 
 export const useLoginUser = () => {
-  const setAuth = useAuthStore((state) => state.setAuth);
+  const setAccessToken = useAuthStore((state) => state.setAccessToken);
   const navigate = useNavigate();
-  const { mutateAsync: loginMutation, isPending, isError, isSuccess } = useMutation({
+
+  const { mutateAsync: login, isPending, isError, isSuccess } = useMutation({
     mutationFn: loginUser,
     onSuccess: (data) => {
-      setAuth(data.data.token);
+      console.log("Login response:", data);
+      setAccessToken(data.data.accessToken);
       toast.success("Successfully logged in", {
-        description: "Enjoy exploring PROjectVerse!",
+        description: "Welcome back!",
       });
       navigate("/profile");
     },
     onError: (error: any) => {
-      console.error("Login error:", error);
-      const errMsg = error?.response?.data?.message || "Invalid credentials. Please try again.";
+      const errMsg = error?.response?.data?.message || "Invalid credentials.";
       toast.error("Error logging in", { description: errMsg });
     },
   });
-  return { login: loginMutation, isPending, isError, isSuccess };
+
+  return { login, isPending, isError, isSuccess };
 };
 
 // --- Google Login --- //
-type GoogleLoginData = { idToken: string };
-
-export const googleLoginUser = async (data: GoogleLoginData): Promise<any> => {
-  const response = await axios.post(ENDPOINTS.AUTH.GOOGLE, data);
+export const googleLoginUser = async (data: GoogleData) => {
+  const response = await axios.post(ENDPOINTS.AUTH.GOOGLE, data, {
+    withCredentials: true, // Set cookies (refresh token)
+  });
   return response.data;
 };
 
 export const useGoogleLogin = () => {
-  const setAuth = useAuthStore((state) => state.setAuth);
+  const setAccessToken = useAuthStore((state) => state.setAccessToken);
   const navigate = useNavigate();
+
   const { mutateAsync: googleLogin, isPending, isError, isSuccess } = useMutation({
     mutationFn: googleLoginUser,
     onSuccess: (data) => {
-      setAuth(data.data.token);
-      toast.success("Successfully logged in with Google", {
-        description: "Enjoy exploring PROjectVerse!",
+      setAccessToken(data.data.accessToken);
+      toast.success("Google login successful", {
+        description: "Welcome to PROjectVerse!",
       });
       navigate("/profile");
     },
     onError: (error: any) => {
-      console.error("Google login error:", error);
-      const errMsg = error?.response?.data?.message || "Google authentication failed. Please try again.";
-      toast.error("Error with Google login", { description: errMsg });
+      const errMsg = error?.response?.data?.message || "Google auth failed.";
+      toast.error("Google Login Error", { description: errMsg });
     },
   });
+
   return { googleLogin, isPending, isError, isSuccess };
 };
 
 // --- Logout --- //
+export const logoutUser = async () => {
+  const response = await axios.post(ENDPOINTS.AUTH.LOGOUT, {}, { withCredentials: true });
+  return response.data;
+};
+
 export const useLogoutUser = () => {
+  const clearAccessToken = useAuthStore((s) => s.clearAccessToken);
   const queryClient = useQueryClient();
   const navigate = useNavigate();
-  const clearAuth = useAuthStore((state) => state.clearAuth);
-  const logout = () => {
-    clearAuth();
-    queryClient.clear(); // Clear React Query cache (user-specific data)
-    toast.success("Logged out", {
-      description: "You have been logged out successfully.",
-    });
-    navigate("/");
-  };
-  return { logout };
+
+  const { mutateAsync: logout, isPending, isError, isSuccess } = useMutation({
+    mutationFn: logoutUser,
+    onSuccess: () => {
+      clearAccessToken();
+      queryClient.clear();
+      toast.success("Logged out", { description: "Session ended." });
+      navigate("/");
+    },
+    onError: (err: any) => {
+      console.error("Logout error", err);
+      toast.error("Logout failed", { description: "Please try again." });
+    },
+  });
+
+  return { logout, isPending, isError, isSuccess };
+};
+
+// --- Refresh Access Token --- //
+export const refreshAccessToken = async () => {
+  const response = await axios.post(ENDPOINTS.AUTH.REFRESH, {}, { withCredentials: true });
+  return response.data;
+};
+
+export const useRefreshAccessToken = () => {
+  const setAccessToken = useAuthStore.getState().setAccessToken;
+
+  const { mutateAsync: refresh, isPending, isError, isSuccess } = useMutation({
+    mutationFn: refreshAccessToken,
+    onSuccess: (data) => {
+      const accessToken = data.data.accessToken;
+      console.log("Refreshed access token:", accessToken);
+      setAccessToken(accessToken);
+    },
+    onError: (error: any) => {
+      console.error("Refresh token failed", error);
+      if (error?.response?.status === 401) {
+        toast.error("Session expired", { description: "Please log in again." });
+        setAccessToken(null);
+      }
+    },
+  });
+
+  return { refresh, isPending, isError, isSuccess };
 };

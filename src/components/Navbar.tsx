@@ -22,8 +22,10 @@ import { useAuthStore } from "@/store/useAuthStore";
 import { useLogoutUser } from "@/api/authApi";
 
 const Navbar = () => {
-  const isLoggedIn = useAuthStore((state) => state.isLoggedIn);
-  const { logout } = useLogoutUser();
+  const accessToken = useAuthStore((state) => state.accessToken);
+  console.log("Access Token:", accessToken);
+  const isLoggedIn = !!accessToken;
+  const { logout, isPending } = useLogoutUser();
   const navigate = useNavigate();
 
   return (
@@ -60,7 +62,7 @@ const Navbar = () => {
                     <Button onClick={() => navigate("/auth/login")} className="w-full mt-4 bg-blue-800 hover:bg-blue-900 text-white">
                       Log In
                     </Button>
-                  </>
+                  </> 
                 )}
               </SheetHeader>
               {isLoggedIn && (
@@ -69,10 +71,11 @@ const Navbar = () => {
                     Profile
                   </Link>
                   <Button
-                    onClick={logout}
+                    onClick={() => logout()}
                     className="w-full mt-2 bg-blue-600 hover:bg-red-700 text-white"
+                    disabled={isPending}
                   >
-                    Log Out
+                    {isPending ? "Logging out..." : "Log Out"}
                   </Button>
                 </div>
               )}
@@ -107,10 +110,11 @@ const Navbar = () => {
                   <DropdownMenuSeparator className="border-t border-gray-300 mx-2 my-1 mb-2" />
                   <div className="flex justify-center">
                     <Button
-                      onClick={logout}
+                      onClick={() => logout()}
+                      disabled={isPending}
                       className="bg-blue-800 hover:bg-blue-900 text-white px-4 py-2 rounded-md w-full"
                     >
-                      Log out
+                      {isPending ? "Logging out..." : "Log Out" }
                     </Button>
                   </div>
                 </DropdownMenuContent>

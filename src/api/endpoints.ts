@@ -5,7 +5,8 @@ export const ENDPOINTS = {
     SIGNUP: `${BASE_API}/auth/signup`,
     LOGIN: `${BASE_API}/auth/login`,
     GOOGLE: `${BASE_API}/auth/google`,
-    LOGOUT: `${BASE_API}/auth/logout`, // If you have a logout endpoint
+    LOGOUT: `${BASE_API}/auth/logout`,
+    REFRESH: `${BASE_API}/auth/refresh`, 
   },
   USER: {
     DETAILS: `${BASE_API}/user/details`,
