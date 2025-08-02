@@ -10,3 +10,14 @@ Background updates
 Pagination & infinite scroll
 
 Syncing with server data
+
+
+# Anywhere you call protected routes, use api instead of axios:
+
+// src/api/userApi.ts
+import api from "@/lib/axios";
+
+export const getAllUsers = async () => {
+  const response = await api.get("/users");
+  return response.data;
+};
