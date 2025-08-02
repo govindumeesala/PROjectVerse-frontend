@@ -10,7 +10,7 @@ export const ENDPOINTS = {
   USER: {
     DETAILS: `${BASE_API}/user/details`,
     UPDATE: `${BASE_API}/user/update`,
-    // Add more user endpoints here
+    ALL_USERS: `${BASE_API}/user/all`, // Endpoint to fetch all users
   },
   PROJECT: {
     CREATE: `${BASE_API}/project/create`,

@@ -16,67 +16,75 @@ import { useCreateProject } from "../api/projectApi";
 import { useState } from "react";
 import { toast } from "sonner";
 
-// Technologies for autocomplete
-const TECHNOLOGIES = [
-  "React",
-  "Node.js",
-  "MongoDB",
-  "Express",
-  "Tailwind",
-  "TypeScript",
-  "Next.js",
-  "Python",
-  "Django",
-  "Flask",
-  "Angular",
-  "Vue.js",
-];
+import { getUserIdFromToken } from "@/lib/utils"; // utility to extract user ID from toke
+import { Checkbox } from "@/components/ui/checkbox";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useGetAllUsers } from "@/api/userApi"; // you'll create this next
+import { useAuthStore } from "@/store/useAuthStore";
 
 const projectSchema = z.object({
   title: z.string().min(1, "Title is required"),
   description: z.string().min(1, "Description is required"),
   domain: z.string().min(1, "Domain is required"),
   techStack: z.array(z.string()).min(1, "Select at least one tech"),
+  status: z.enum(["ongoing", "completed"]),
+  lookingForCollaborators: z.boolean(),
+  contributors: z.array(z.string()).optional(),
   projectPhoto: z.string().url("Enter a valid image URL").optional().or(z.literal("")),
   githubURL: z.string().url("Enter a valid GitHub URL").optional(),
   deploymentURL: z.string().url("Enter a valid Deployment URL").optional().or(z.literal("")),
   demoURL: z.string().url("Enter a valid Demo URL").optional().or(z.literal("")),
 });
 
-function getUserIdFromToken(): string | undefined {
-  const token = localStorage.getItem("token");
-  if (!token) return undefined;
-  try {
-    // JWT: header.payload.signature
-    const payload = JSON.parse(atob(token.split(".")[1]));
-    console.log("Decoded payload:", payload);
-    return payload.userId;
-  } catch {
-    return undefined;
-  }
-}
+// Example tech stack options, you can customize this list as needed
+const TECHNOLOGIES = [
+  "React",
+  "Angular",
+  "Vue",
+  "Node.js",
+  "Express",
+  "MongoDB",
+  "TypeScript",
+  "JavaScript",
+  "Python",
+  "Django",
+  "Flask",
+  "Java",
+  "Spring Boot",
+  "C#",
+  "ASP.NET",
+  "Ruby on Rails",
+  "PHP",
+  "Laravel",
+  "Go",
+  "Rust",
+  "C++",
+  "Next.js",
+  "Tailwind CSS",
+  "Bootstrap",
+  "Sass",
+  "GraphQL",
+  "Redux",
+  "Firebase",
+  "AWS",
+  "Docker",
+  "Kubernetes"
+];
 
-// Simple MultiSelect Autocomplete
-function TechMultiSelect({
-  value,
-  onChange,
-}: {
-  value: string[];
-  onChange: (val: string[]) => void;
-}) {
+function TechMultiSelect({ value, onChange }: { value: string[]; onChange: (val: string[]) => void }) {
   const [input, setInput] = useState("");
   const [showOptions, setShowOptions] = useState(false);
 
   const filtered = TECHNOLOGIES.filter(
-    (tech) =>
-      tech.toLowerCase().includes(input.toLowerCase()) &&
-      !value.includes(tech)
+    (tech) => tech.toLowerCase().includes(input.toLowerCase()) && !value.includes(tech)
   );
 
   const addTech = (tech: string) => {
-    onChange([...value, tech]);
-    setInput("");
-    setShowOptions(false);
+    if (tech.trim()) {
+      onChange([...value, tech.trim()]);
+      setInput("");
+      setShowOptions(false);
+    }
   };
 
   const removeTech = (tech: string) => {
@@ -87,28 +95,26 @@ function TechMultiSelect({
     <div className="relative">
       <div className="flex flex-wrap gap-2 mb-1">
         {value.map((tech) => (
-          <span
-            key={tech}
-            className="bg-blue-100 text-blue-800 px-2 py-1 rounded flex items-center text-sm"
-          >
+          <span key={tech} className="bg-blue-100 text-blue-800 px-2 py-1 rounded flex items-center text-sm">
             {tech}
-            <button
-              type="button"
-              className="ml-1 text-blue-600 hover:text-red-600"
-              onClick={() => removeTech(tech)}
-              aria-label={`Remove ${tech}`}
-            >
+            <button type="button" className="ml-1 text-blue-600 hover:text-red-600" onClick={() => removeTech(tech)}>
               ×
             </button>
           </span>
         ))}
       </div>
       <Input
-        placeholder="Type to search tech..."
+        placeholder="Type to add or select tech..."
         value={input}
         onChange={(e) => {
           setInput(e.target.value);
           setShowOptions(true);
+        }}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") {
+            e.preventDefault();
+            addTech(input);
+          }
         }}
         onFocus={() => setShowOptions(true)}
         onBlur={() => setTimeout(() => setShowOptions(false), 100)}
@@ -116,11 +122,7 @@ function TechMultiSelect({
       {showOptions && filtered.length > 0 && (
         <ul className="absolute z-10 bg-white border w-full mt-1 rounded shadow max-h-40 overflow-auto">
           {filtered.map((tech) => (
-            <li
-              key={tech}
-              className="px-3 py-2 hover:bg-blue-100 cursor-pointer"
-              onMouseDown={() => addTech(tech)}
-            >
+            <li key={tech} className="px-3 py-2 hover:bg-blue-100 cursor-pointer" onMouseDown={() => addTech(tech)}>
               {tech}
             </li>
           ))}
@@ -132,6 +134,8 @@ function TechMultiSelect({
 
 export const CreateProjectForm = () => {
   const { createProject, isPending } = useCreateProject();
+  const { data: users = [] } = useGetAllUsers();
+  const token = useAuthStore((state) => state.token);
 
   const form = useForm({
     resolver: zodResolver(projectSchema),
@@ -140,6 +144,9 @@ export const CreateProjectForm = () => {
       description: "",
       domain: "",
       techStack: [],
+      status: "ongoing",
+      lookingForCollaborators: false,
+      contributors: [],
       projectPhoto: "",
       githubURL: "",
       deploymentURL: "",
@@ -147,8 +154,14 @@ export const CreateProjectForm = () => {
     },
   });
 
+  const lookingForCollaborators = form.watch("lookingForCollaborators");
+
   const onSubmit = async (data: any) => {
-    await createProject({ ...data, owner: getUserIdFromToken() });
+    if (!token) {
+      toast.error("You must be logged in to create a project.");
+      return;
+    }
+    await createProject({ ...data, owner: getUserIdFromToken(token) });
     form.reset();
     toast.success("Project created successfully!");
   };
@@ -160,51 +173,33 @@ export const CreateProjectForm = () => {
       </h2>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-          <FormField
-            control={form.control}
-            name="title"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Project Title</FormLabel>
-                <FormControl>
-                  <Input placeholder="Enter your project title" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="description"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Description</FormLabel>
-                <FormControl>
-                  <Textarea placeholder="Briefly describe your project" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="domain"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Domain</FormLabel>
-                <FormControl>
-                  <Input placeholder="e.g. Web Development, AI" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+          {[
+            { name: "title", label: "Project Title", placeholder: "Enter your project title" },
+            { name: "description", label: "Description", component: Textarea, placeholder: "Describe your project" },
+            { name: "domain", label: "Domain", placeholder: "e.g. Web, AI, ML" },
+          ].map(({ name, label, placeholder, component: Comp = Input }) => (
+            <FormField
+              key={name}
+              control={form.control}
+              name={name as any}
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{label} *</FormLabel>
+                  <FormControl>
+                    <Comp placeholder={placeholder} {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          ))}
+
           <FormField
             control={form.control}
             name="techStack"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Tech Stack</FormLabel>
+                <FormLabel>Tech Stack *</FormLabel>
                 <FormControl>
                   <TechMultiSelect value={field.value} onChange={field.onChange} />
                 </FormControl>
@@ -212,65 +207,90 @@ export const CreateProjectForm = () => {
               </FormItem>
             )}
           />
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+          <FormField
+            control={form.control}
+            name="status"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Status *</FormLabel>
+                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select project status" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="ongoing">Ongoing</SelectItem>
+                    <SelectItem value="completed">Completed</SelectItem>
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="lookingForCollaborators"
+            render={({ field }) => (
+              <FormItem className="flex items-center gap-2">
+                <FormControl>
+                  <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                </FormControl>
+                <FormLabel>Looking for Collaborators</FormLabel>
+              </FormItem>
+            )}
+          />
+
+          {!lookingForCollaborators && (
             <FormField
               control={form.control}
-              name="projectPhoto"
+              name="contributors"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Project Image URL</FormLabel>
+                  <FormLabel>Select Contributors</FormLabel>
                   <FormControl>
-                    <Input placeholder="https://image.com/project.png" {...field} />
+                    <select
+                      multiple
+                      className="w-full border rounded p-2 dark:bg-gray-800"
+                      value={field.value}
+                      onChange={(e) =>
+                        field.onChange(Array.from(e.target.selectedOptions, (option) => option.value))
+                      }
+                    >
+                      {users.map((user: any) => (
+                        <option key={user._id} value={user._id}>
+                          {user.name} ({user.email})
+                        </option>
+                      ))}
+                    </select>
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
+          )}
+
+          {/* Links */}
+          {["projectPhoto", "githubURL", "deploymentURL", "demoURL"].map((fieldName) => (
             <FormField
+              key={fieldName}
               control={form.control}
-              name="githubURL"
+              name={fieldName as any}
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>GitHub URL</FormLabel>
+                  <FormLabel>{fieldName.replace(/URL/, " URL")}</FormLabel>
                   <FormControl>
-                    <Input placeholder="https://github.com/user/project" {...field} />
+                    <Input placeholder={`https://...`} {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-            <FormField
-              control={form.control}
-              name="deploymentURL"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Live Deployment URL</FormLabel>
-                  <FormControl>
-                    <Input placeholder="https://project.live" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="demoURL"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Demo Video URL</FormLabel>
-                  <FormControl>
-                    <Input placeholder="https://youtube.com/demo" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
-          <Button
-            type="submit"
-            disabled={isPending}
-            className="w-full bg-blue-900 hover:bg-blue-800 text-white"
-          >
+          ))}
+
+          <Button type="submit" disabled={isPending} className="w-full bg-blue-900 text-white">
             {isPending ? "Creating..." : "Create Project"}
           </Button>
         </form>
@@ -279,4 +299,4 @@ export const CreateProjectForm = () => {
   );
 };
 
-export default CreateProjectForm;
+
