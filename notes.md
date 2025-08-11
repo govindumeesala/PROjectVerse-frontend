@@ -22,8 +22,12 @@ export const getAllUsers = async () => {
   return response.data;
 };
 
+# TODO
+1. ADD EYE ICON FOR TOGGLE OF PASSWORD TO SHOW AND HIDE. - done
 
-Refining and enhancements in create-project form 
+## Refining and enhancements in create-project form 
+
 1.adding status and contributors in form
 2.project_id's in user model
-3.star mark for mandatory fields
+3.star mark for mandatory fields (red color)
+4.file upload for project photo

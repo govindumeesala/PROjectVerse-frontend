@@ -2,7 +2,7 @@ import { Route, Routes } from "react-router-dom";
 import { useEffect, useRef } from "react";
 import HomePage from '@/pages/HomePage';
 import Layout from "@/Layout/Layout";
-import CreateProjectPage from "@/pages/CreateProject";
+import CreateProjectPage from "@/pages/CreateProjectPage";
 import ProfilePage from "@/pages/ProfilePage";
 import CollabPage from "@/pages/CollabPage";
 import LoginSignupPage from "@/pages/LoginSignupPage";
