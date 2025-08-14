@@ -27,7 +27,9 @@ export const getAllUsers = async () => {
 
 ## Refining and enhancements in create-project form 
 
-1.adding status and contributors in form
-2.project_id's in user model
-3.star mark for mandatory fields (red color)
-4.file upload for project photo
+1.file upload for project photo
+
+## Featues in home page
+1. Rendering of all projects in centre 
+2. Sidebar on left with myprojects, projects,e.t.c
+3. Notifications on the right bar

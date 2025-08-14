@@ -1,14 +1,15 @@
 // projectApi.tsx
-import axios from "axios";
+// import axios from "axios";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 // import { useNavigate } from "react-router-dom";
 import { ENDPOINTS } from "./endpoints";
 import { useAuthStore } from "@/store/useAuthStore";
+import api from "@/lib/axios";
 
 // --- Create Project --- //
 export const createProjectApi = async (projectData: FormData, token: string | null): Promise<any> => {
-  const response = await axios.post(ENDPOINTS.PROJECT.CREATE, projectData, {
+  const response = await api.post(ENDPOINTS.PROJECT.CREATE, projectData, {
     headers: {
       "Content-Type": "multipart/form-data",
       ...(token && { Authorization: `Bearer ${token}` }),
@@ -20,7 +21,7 @@ export const createProjectApi = async (projectData: FormData, token: string | nu
 export const useCreateProject = () => {
   // const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const token = useAuthStore((state) => state.token); 
+  const token = useAuthStore((state) => state.accessToken);
 
   const {
     mutateAsync: createProject,

@@ -15,12 +15,16 @@ import { Textarea } from "@/components/ui/textarea";
 import { useCreateProject } from "../api/projectApi";
 import { useState } from "react";
 import { toast } from "sonner";
-
-import { getUserIdFromToken } from "@/lib/utils"; // utility to extract user ID from toke
 import { Checkbox } from "@/components/ui/checkbox";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useGetAllUsers } from "@/api/userApi"; // you'll create this next
-import { useAuthStore } from "@/store/useAuthStore";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { useGetAllUsers } from "@/api/userApi";
+import { UploadCloud } from "lucide-react"; // or use any icon library you have
 
 const projectSchema = z.object({
   title: z.string().min(1, "Title is required"),
@@ -28,15 +32,15 @@ const projectSchema = z.object({
   domain: z.string().min(1, "Domain is required"),
   techStack: z.array(z.string()).min(1, "Select at least one tech"),
   status: z.enum(["ongoing", "completed"]),
-  lookingForCollaborators: z.boolean(),
+  lookingForCollaborators: z.boolean().optional(),
   contributors: z.array(z.string()).optional(),
-  projectPhoto: z.string().url("Enter a valid image URL").optional().or(z.literal("")),
+  projectPhoto: z.any().optional(), // File upload, handled separately
   githubURL: z.string().url("Enter a valid GitHub URL").optional(),
   deploymentURL: z.string().url("Enter a valid Deployment URL").optional().or(z.literal("")),
   demoURL: z.string().url("Enter a valid Demo URL").optional().or(z.literal("")),
 });
 
-// Example tech stack options, you can customize this list as needed
+
 const TECHNOLOGIES = [
   "React",
   "Angular",
@@ -135,7 +139,6 @@ function TechMultiSelect({ value, onChange }: { value: string[]; onChange: (val:
 export const CreateProjectForm = () => {
   const { createProject, isPending } = useCreateProject();
   const { data: users = [] } = useGetAllUsers();
-  const token = useAuthStore((state) => state.token);
 
   const form = useForm({
     resolver: zodResolver(projectSchema),
@@ -154,23 +157,37 @@ export const CreateProjectForm = () => {
     },
   });
 
-  const lookingForCollaborators = form.watch("lookingForCollaborators");
+  const status = form.watch("status");
+  const contributors = form.watch("contributors") || [];
+  const [contributorInput, setContributorInput] = useState("");
+  const [showContributorOptions, setShowContributorOptions] = useState(false);
+
+  const matchingUsers = users
+    .filter((u: any) =>
+      (u.name?.toLowerCase().includes(contributorInput.toLowerCase()) ||
+        u.email?.toLowerCase().includes(contributorInput.toLowerCase())) &&
+      !contributors.includes(u._id)
+    )
+    .slice(0, 5);
+
+  const addContributor = (id: string) => {
+    form.setValue("contributors", [...contributors, id]);
+    setContributorInput("");
+  };
+
+  const removeContributor = (id: string) => {
+    form.setValue("contributors", contributors.filter((c) => c !== id));
+  };
 
   const onSubmit = async (data: any) => {
-    if (!token) {
-      toast.error("You must be logged in to create a project.");
-      return;
-    }
-    await createProject({ ...data, owner: getUserIdFromToken(token) });
+    await createProject( data );
     form.reset();
     toast.success("Project created successfully!");
   };
 
   return (
     <div className="bg-white dark:bg-gray-900 rounded-xl shadow-lg p-8 w-full max-w-2xl mx-auto">
-      <h2 className="text-2xl font-semibold mb-6 text-center text-blue-900 dark:text-white">
-        Create New Project
-      </h2>
+      <h2 className="text-2xl font-semibold mb-6 text-center text-blue-900 dark:text-white">Create New Project</h2>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
           {[
@@ -184,7 +201,9 @@ export const CreateProjectForm = () => {
               name={name as any}
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{label} *</FormLabel>
+                  <FormLabel>
+                    {label}<span className="text-red-600">*</span>
+                  </FormLabel>
                   <FormControl>
                     <Comp placeholder={placeholder} {...field} />
                   </FormControl>
@@ -199,7 +218,9 @@ export const CreateProjectForm = () => {
             name="techStack"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Tech Stack *</FormLabel>
+                <FormLabel>
+                  Tech Stack<span className="text-red-600">*</span> 
+                </FormLabel>
                 <FormControl>
                   <TechMultiSelect value={field.value} onChange={field.onChange} />
                 </FormControl>
@@ -213,7 +234,9 @@ export const CreateProjectForm = () => {
             name="status"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Status *</FormLabel>
+                <FormLabel>
+                  <span className="text-red-600">*</span> Status
+                </FormLabel>
                 <Select onValueChange={field.onChange} defaultValue={field.value}>
                   <FormControl>
                     <SelectTrigger>
@@ -230,50 +253,92 @@ export const CreateProjectForm = () => {
             )}
           />
 
-          <FormField
-            control={form.control}
-            name="lookingForCollaborators"
-            render={({ field }) => (
-              <FormItem className="flex items-center gap-2">
-                <FormControl>
-                  <Checkbox checked={field.value} onCheckedChange={field.onChange} />
-                </FormControl>
-                <FormLabel>Looking for Collaborators</FormLabel>
-              </FormItem>
-            )}
-          />
-
-          {!lookingForCollaborators && (
+          {status !== "completed" && (
             <FormField
               control={form.control}
-              name="contributors"
+              name="lookingForCollaborators"
               render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Select Contributors</FormLabel>
+                <FormItem className="flex items-center gap-2">
                   <FormControl>
-                    <select
-                      multiple
-                      className="w-full border rounded p-2 dark:bg-gray-800"
-                      value={field.value}
-                      onChange={(e) =>
-                        field.onChange(Array.from(e.target.selectedOptions, (option) => option.value))
-                      }
-                    >
-                      {users.map((user: any) => (
-                        <option key={user._id} value={user._id}>
-                          {user.name} ({user.email})
-                        </option>
-                      ))}
-                    </select>
+                    <Checkbox checked={field.value} onCheckedChange={field.onChange} />
                   </FormControl>
-                  <FormMessage />
+                  <FormLabel>Looking for Collaborators</FormLabel>
                 </FormItem>
               )}
             />
           )}
 
-          {/* Links */}
-          {["projectPhoto", "githubURL", "deploymentURL", "demoURL"].map((fieldName) => (
+          <FormItem>
+            <FormLabel>Select Contributors</FormLabel>
+            <div className="flex flex-wrap gap-2 mb-2">
+              {contributors.map((id) => {
+                const user = users.find((u) => u._id === id);
+                return (
+                  <span key={id} className="bg-blue-100 text-blue-800 px-2 py-1 rounded flex items-center text-sm">
+                    {user?.name || user?.email}
+                    <button type="button" className="ml-1 text-blue-600 hover:text-red-600" onClick={() => removeContributor(id)}>
+                      ×
+                    </button>
+                  </span>
+                );
+              })}
+            </div>
+            <Input
+              placeholder="Search contributors by name or email..."
+              value={contributorInput}
+              onChange={(e) => setContributorInput(e.target.value)}
+              onFocus={() => setShowContributorOptions(true)}
+              onBlur={() => setTimeout(() => setShowContributorOptions(false), 100)}
+            />
+            {showContributorOptions && matchingUsers.length > 0 && (
+              <ul className="border rounded bg-white shadow max-h-40 overflow-auto mt-1">
+                {matchingUsers.map((user: any) => (
+                  <li
+                    key={user._id}
+                    className="p-2 hover:bg-blue-100 cursor-pointer"
+                    onMouseDown={() => addContributor(user._id)}
+                  >
+                    {user.name} ({user.email})
+                  </li>
+                ))}
+              </ul>
+            )}
+          </FormItem>
+
+          <FormField
+            control={form.control}
+            name="projectPhoto"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>
+                  Project Photo
+                </FormLabel>
+                <FormControl>
+                  <label
+                    htmlFor="project-photo-upload"
+                    className="flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-lg cursor-pointer p-8 bg-white hover:bg-blue-100 transition-colors text-blue-900"
+                  >
+                    <UploadCloud className="w-10 h-10 mb-2 text-blue-400" />
+                    <span className="font-medium">Upload Project Photo</span>
+                    <span className="text-xs text-blue-500 mb-2">PNG, JPG, JPEG up to 5MB</span>
+                    <input
+                      id="project-photo-upload"
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) => field.onChange(e.target.files?.[0])}
+                    />
+                    {field.value && typeof field.value !== "string" && (
+                      <span className="mt-2 text-sm text-green-600">{field.value.name}</span>
+                    )}
+                  </label>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          {["githubURL", "deploymentURL", "demoURL"].map((fieldName) => (
             <FormField
               key={fieldName}
               control={form.control}
@@ -282,13 +347,14 @@ export const CreateProjectForm = () => {
                 <FormItem>
                   <FormLabel>{fieldName.replace(/URL/, " URL")}</FormLabel>
                   <FormControl>
-                    <Input placeholder={`https://...`} {...field} />
+                    <Input placeholder="https://..." {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
           ))}
+
 
           <Button type="submit" disabled={isPending} className="w-full bg-blue-900 text-white">
             {isPending ? "Creating..." : "Create Project"}
@@ -298,5 +364,3 @@ export const CreateProjectForm = () => {
     </div>
   );
 };
-
-

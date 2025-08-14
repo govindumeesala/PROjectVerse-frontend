@@ -23,7 +23,6 @@ import { useLogoutUser } from "@/api/authApi";
 
 const Navbar = () => {
   const accessToken = useAuthStore((state) => state.accessToken);
-  console.log("Access Token:", accessToken);
   const isLoggedIn = !!accessToken;
   const { logout, isPending } = useLogoutUser();
   const navigate = useNavigate();
