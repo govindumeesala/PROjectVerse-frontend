@@ -3,25 +3,23 @@ import axios from "axios";
 import { useAuthStore } from "@/store/useAuthStore";
 import { refreshAccessToken } from "@/api/authApi";
 
-const api = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL,
-  withCredentials: true, // Send cookies (refresh token)
+const baseURL = import.meta.env.VITE_API_BASE_URL;
+
+export const api = axios.create({
+  baseURL,
+  withCredentials: true, // need cookies for refresh & retry
 });
 
-// --- Interceptor to add token to protected routes ---
+// --- Attach token for private routes only ---
 api.interceptors.request.use((config) => {
   const token = useAuthStore.getState().accessToken;
-
-  const isProtected = config.url?.startsWith("/my");
-
-  if (token && isProtected) {
+  if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
-
   return config;
 });
 
-// --- Refresh token logic for 401 responses ---
+// --- Refresh token logic for private routes ---
 let isRefreshing = false;
 let failedQueue: any[] = [];
 
@@ -30,7 +28,6 @@ const processQueue = (error: any, token: string | null = null) => {
     if (error) prom.reject(error);
     else prom.resolve(token);
   });
-
   failedQueue = [];
 };
 
@@ -57,7 +54,7 @@ api.interceptors.response.use(
       isRefreshing = true;
 
       try {
-        const { data } = await refreshAccessToken();
+        const { data } = await refreshAccessToken(); 
         const token = data.accessToken;
 
         useAuthStore.getState().setAccessToken(token);
@@ -77,5 +74,3 @@ api.interceptors.response.use(
     return Promise.reject(error);
   }
 );
-
-export default api;
