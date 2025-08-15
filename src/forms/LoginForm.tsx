@@ -5,6 +5,8 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useLoginUser } from "../api/authApi";
+import { useState } from "react";
+import { Eye, EyeOff } from "lucide-react";
 
 const loginSchema = z.object({
   email: z.string().email("Invalid email"),
@@ -13,6 +15,8 @@ const loginSchema = z.object({
 
 export const LoginForm = () => {
   const { login, isPending } = useLoginUser();
+  const [showPassword, setShowPassword] = useState(false)
+
   const form = useForm({
     resolver: zodResolver(loginSchema),
     defaultValues: { email: "", password: "" },
@@ -45,12 +49,27 @@ export const LoginForm = () => {
             <FormItem>
               <FormLabel>Password</FormLabel>
               <FormControl>
-                <Input type="password" placeholder="********" {...field} />
+                <div className="relative">
+                  <Input
+                    type={showPassword ? "text" : "password"}
+                    placeholder="********"
+                    {...field}
+                    className="pr-10" // space for the icon
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword((prev) => !prev)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                  >
+                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
+                </div>
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
+
         <Button type="submit" disabled={isPending} className="w-full bg-blue-900 hover:bg-blue-800 cursor-pointer">
           {isPending ? "Logging In..." : "Log In"}
         </Button>

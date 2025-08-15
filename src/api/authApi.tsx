@@ -143,7 +143,6 @@ export const useRefreshAccessToken = () => {
     mutationFn: refreshAccessToken,
     onSuccess: (data) => {
       const accessToken = data.data.accessToken;
-      console.log("Refreshed access token:", accessToken);
       setAccessToken(accessToken);
     },
     onError: (error: any) => {

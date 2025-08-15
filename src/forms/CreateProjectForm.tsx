@@ -138,7 +138,8 @@ function TechMultiSelect({ value, onChange }: { value: string[]; onChange: (val:
 
 export const CreateProjectForm = () => {
   const { createProject, isPending } = useCreateProject();
-  const { data: users = [] } = useGetAllUsers();
+  const { data } = useGetAllUsers();
+  const users = data?.data || [];
 
   const form = useForm({
     resolver: zodResolver(projectSchema),
@@ -272,7 +273,7 @@ export const CreateProjectForm = () => {
             <FormLabel>Select Contributors</FormLabel>
             <div className="flex flex-wrap gap-2 mb-2">
               {contributors.map((id) => {
-                const user = users.find((u) => u._id === id);
+                const user = users.find((u: { _id: string; }) => u._id === id);
                 return (
                   <span key={id} className="bg-blue-100 text-blue-800 px-2 py-1 rounded flex items-center text-sm">
                     {user?.name || user?.email}
