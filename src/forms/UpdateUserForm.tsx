@@ -192,7 +192,7 @@ const UpdateUserForm: React.FC<Props> = ({ user, open, onOpenChange }) => {
               <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>
                 Cancel
               </Button>
-              <Button type="submit" disabled={isPending} className="bg-blue-900 text-white">
+              <Button type="submit" disabled={isPending} className="bg-blue-800 cursor-pointer hover:bg-blue-900 text-white">
                 {isPending ? "Saving..." : "Save"}
               </Button>
             </div>

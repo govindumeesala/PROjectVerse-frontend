@@ -11,6 +11,7 @@ export const ENDPOINTS = {
   USER: {
     ME: `${BASE_API}/user`, // Endpoint to get the current user's details
     ALL_USERS: `${BASE_API}/user/all`, // Endpoint to fetch all users
+    STATS: `${BASE_API}/user/stats`, // Endpoint to fetch user statistics
   },
   PROJECT: {
     CREATE: `${BASE_API}/project/create`,

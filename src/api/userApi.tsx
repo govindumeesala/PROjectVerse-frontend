@@ -69,3 +69,27 @@ export const useGetAllUsers = () => {
 
   return { users: data, isPending, isError, isSuccess };
 };
+
+export const fetchMyStats = async (): Promise<any> => {
+  const response = await api.get(ENDPOINTS.USER.STATS);
+  // normalize to the object stored in response.data.data (or fallback)
+  return response?.data?.data ?? {
+    projectsOwned: 0,
+    activeProjects: 0,
+    completedProjects: 0,
+    collaborationsCount: 0,
+    contributionsCount: 0,
+    bookmarksCount: 0,
+  };
+};
+
+export const useGetMyStats = () => {
+  const { data, isLoading, isError, isSuccess } = useQuery({
+    queryKey: ["user", "stats"],
+    queryFn: fetchMyStats,
+    staleTime: 60 * 1000, // 1 minute - tweak as needed
+    retry: 1,
+  });
+
+  return { stats: data, isPending: isLoading, isError, isSuccess };
+};

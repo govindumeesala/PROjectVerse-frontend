@@ -40,3 +40,9 @@ export const getAllUsers = async () => {
 2. store contributors in the contributors collection only 
 3. update the create project controller - TODO (p0) - SUDHEER
 4. dont toast in form (create project form) - we are doing it in api file - TODO (p1)
+5. like tech stack add dropdown for domain also - TODO (P0)
+
+# TASKS FOR GOVI
+
+1. Add social media links to profile header - p0
+2. update navbar with profile pic and first name - p1 
