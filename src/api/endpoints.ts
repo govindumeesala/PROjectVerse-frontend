@@ -9,8 +9,7 @@ export const ENDPOINTS = {
     REFRESH: `${BASE_API}/auth/refresh`, 
   },
   USER: {
-    DETAILS: `${BASE_API}/user/details`,
-    UPDATE: `${BASE_API}/user/update`,
+    ME: `${BASE_API}/user`, // Endpoint to get the current user's details
     ALL_USERS: `${BASE_API}/user/all`, // Endpoint to fetch all users
   },
   PROJECT: {

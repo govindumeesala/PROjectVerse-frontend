@@ -33,3 +33,10 @@ export const getAllUsers = async () => {
 1. Rendering of all projects in centre 
 2. Sidebar on left with myprojects, projects,e.t.c
 3. Notifications on the right bar
+
+# TASKS FOR SUDHEER
+# create project 
+1. removed contributors field  from project model
+2. store contributors in the contributors collection only 
+3. update the create project controller - TODO (p0) - SUDHEER
+4. dont toast in form (create project form) - we are doing it in api file - TODO (p1)
