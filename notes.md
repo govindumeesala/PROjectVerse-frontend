@@ -38,9 +38,10 @@ export const getAllUsers = async () => {
 # create project 
 1. removed contributors field  from project model
 2. store contributors in the contributors collection only 
-3. update the create project controller - TODO (p0) - SUDHEER
+3. update the create project controller - TODO (p0) 
 4. dont toast in form (create project form) - we are doing it in api file - TODO (p1)
 5. like tech stack add dropdown for domain also - TODO (P0)
+6. add _id along with the name and email in getAllusers route 
 
 # TASKS FOR GOVI
 
