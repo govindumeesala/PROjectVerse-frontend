@@ -17,6 +17,7 @@ export const ENDPOINTS = {
     CREATE: `${BASE_API}/project/create`,
     LIST: `${BASE_API}/project/list`,
     // Add more project endpoints here
+    MY_PROJECTS: `${BASE_API}/project/my-projects`, // Endpoint to get user's projects
   },
   // Add other resource endpoints as needed
 };

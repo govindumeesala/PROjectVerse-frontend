@@ -15,7 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useCreateProject } from "@/api/projectApi";
 import { useState } from "react";
-import { toast } from "sonner";
+// import { toast } from "sonner";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   Select,
@@ -133,7 +133,7 @@ export const CreateProjectForm = () => {
     },
   });
 
-  const status = form.watch("status");
+  // const status = form.watch("status");
   const contributors = form.watch("contributors") || [];
   const [contributorInput, setContributorInput] = useState("");
   const [showContributorOptions, setShowContributorOptions] = useState(false);
@@ -185,10 +185,10 @@ export const CreateProjectForm = () => {
 
       form.reset();
       setContributorInput("");
-      toast.success("Project created successfully!");
+      // toast.success("Project created successfully!");
     } catch (err) {
       console.error("Create project error:", err);
-      toast.error("Failed to create project");
+      // toast.error("Failed to create project");
     }
   };
 
