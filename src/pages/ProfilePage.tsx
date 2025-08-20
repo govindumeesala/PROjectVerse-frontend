@@ -4,6 +4,7 @@ import ProfileHeader from "@/components/profile/ProfileHeader";
 import StatsCard from "@/components/profile/StatsCard";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useGetMyProfile } from "@/api/userApi"; // only if you need user here for projects preview
+import TopProjects from "@/components/profile/TopProjects";
 
 const ProfilePage: React.FC = () => {
   // If you need the user's projects list to show below, fetch it here (optional).
@@ -31,19 +32,7 @@ const ProfilePage: React.FC = () => {
               <Skeleton className="h-16 rounded-lg mb-2" />
               <Skeleton className="h-16 rounded-lg" />
             </div>
-          ) : user?.projects && user.projects.length > 0 ? (
-            user.projects.slice(0, 5).map((p: any) => (
-              <div key={p._id} className="p-3 border rounded flex items-center justify-between">
-                <div>
-                  <div className="font-semibold">{p.title}</div>
-                  <div className="text-sm text-gray-500">{p.domain}</div>
-                </div>
-                <div className="text-sm text-gray-600">{p.status}</div>
-              </div>
-            ))
-          ) : (
-            <div className="text-sm text-gray-500">No projects yet.</div>
-          )}
+          ) :  <TopProjects />}
         </div>
       </div>
     </div>

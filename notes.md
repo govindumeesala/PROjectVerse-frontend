@@ -11,7 +11,6 @@ Pagination & infinite scroll
 
 Syncing with server data
 
-
 # Anywhere you call protected routes, use api instead of axios:
 
 // src/api/userApi.ts
@@ -41,12 +40,15 @@ export const getAllUsers = async () => {
 3. update the create project controller - TODO (p0) - done
 4. dont toast in form (create project form) - we are doing it in api file - TODO (p1) - done
 5. like tech stack add dropdown for domain also - TODO (P0)
-6. add _id along with the name and email in getAllusers route 
+6. add _id along with the name and email in getAllusers route - done
+7. add role in collaboration in create project form.
+8. 
 
 # TASKS FOR GOVI
 
 1. Add social media links to profile header - p0
-2. update navbar with profile pic and first name - p1 
+2. update navbar with profile pic and first name - p1
+
 ## Projects
 2. A project card with like,comment,share  on bottom projectname,description,techStack,domain,githubURL photo if present on bottom.
 On clicking the photo card, 

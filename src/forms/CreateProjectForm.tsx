@@ -30,7 +30,7 @@ import { UploadCloud } from "lucide-react";
 const projectSchema = z.object({
   title: z.string().min(1, "Title is required"),
   description: z.string().min(1, "Description is required"),
-  domain: z.string().min(1, "Domain is required"),
+  domain: z.array(z.string()).min(1, "Select at least one domain"),
   techStack: z.array(z.string()).min(1, "Select at least one tech"),
   status: z.enum(["ongoing", "completed"]),
   lookingForCollaborators: z.boolean().optional(),
@@ -112,6 +112,56 @@ function TechMultiSelect({ value, onChange }: { value: string[]; onChange: (val:
   );
 }
 
+type DomainMultiSelectProps = {
+  value: string[];
+  onChange: (val: string[]) => void;
+};
+
+const DOMAINS = [
+  "Web",
+  "Artificial Intelligence",
+  "Deep learning",
+  "Machine Learning",
+  "Cyber Security",
+]
+
+function DomainMultiSelect({ value, onChange }: DomainMultiSelectProps) {
+  const [input, setInput] = useState("");
+  const [showOptions, setShowOptions] = useState(false);
+  const filtered = DOMAINS.filter(
+    (domain) => domain.toLowerCase().includes(input.toLowerCase()) && !value.includes(domain)
+  );
+  const addDomain = (domain: string) => { if (domain.trim()) { onChange([...value, domain.trim()]); setInput(""); setShowOptions(false); } };
+  const removeDomain = (domain: string) => { onChange(value.filter((d) => d !== domain)); };
+  return (
+    <div className="relative">
+      <div className="flex flex-wrap gap-2 mb-1">
+        {value.map((domain) => (
+          <span key={domain} className="bg-blue-100 text-blue-800 px-2 py-1 rounded flex items-center text-sm">
+            {domain}
+            <button type="button" className="ml-1 text-blue-600 hover:text-red-600" onClick={() => removeDomain(domain)}>×</button>
+          </span>
+        ))}
+      </div>
+      <Input
+        placeholder="Type to add or select domain..."
+        value={input}
+        onChange={(e) => { setInput(e.target.value); setShowOptions(true); }}
+        onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addDomain(input); } }}
+        onFocus={() => setShowOptions(true)}
+        onBlur={() => setTimeout(() => setShowOptions(false), 100)}
+      />
+      {showOptions && filtered.length > 0 && (
+        <ul className="absolute z-10 bg-white border w-full mt-1 rounded shadow max-h-40 overflow-auto">
+          {filtered.map((domain) => (
+            <li key={domain} className="px-3 py-2 hover:bg-blue-100 cursor-pointer" onMouseDown={() => addDomain(domain)}>{domain}</li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+
 export const CreateProjectForm = () => {
   const { createProject, isPending } = useCreateProject();
   const { users = [], isPending: isUsersLoading } = useGetAllUsers(); 
@@ -121,7 +171,7 @@ export const CreateProjectForm = () => {
     defaultValues: {
       title: "",
       description: "",
-      domain: "",
+      domain: [],
       techStack: [],
       status: "ongoing",
       lookingForCollaborators: false,
@@ -202,7 +252,6 @@ export const CreateProjectForm = () => {
           {[ 
             { name: "title", label: "Project Title", placeholder: "Enter your project title" },
             { name: "description", label: "Description", component: Textarea, placeholder: "Describe your project" },
-            { name: "domain", label: "Domain", placeholder: "e.g. Web, AI, ML" },
           ].map(({ name, label, placeholder, component: Comp = Input }) => (
             <FormField key={name} control={form.control} name={name as any}
               render={({ field }) => (
@@ -214,6 +263,15 @@ export const CreateProjectForm = () => {
               )}
             />
           ))}
+
+          {/* Domain stack */}
+          <FormField control={form.control} name="domain" render={({ field }) => (
+            <FormItem>
+              <FormLabel>domain <span className="text-red-600">*</span></FormLabel>
+              <FormControl><DomainMultiSelect value={field.value} onChange={field.onChange} /></FormControl>
+              <FormMessage />
+            </FormItem>
+          )} />
 
           {/* Tech stack */}
           <FormField control={form.control} name="techStack" render={({ field }) => (
@@ -322,3 +380,4 @@ export const CreateProjectForm = () => {
 };
 
 export default CreateProjectForm;
+
