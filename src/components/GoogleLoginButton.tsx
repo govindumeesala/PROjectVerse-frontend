@@ -11,7 +11,6 @@ const GoogleLoginButton = () => {
       await googleLogin({ idToken: token });
     } catch (error) {
       console.error("Error during Google login:", error);
-      // toast.error("Error during Google login");
     }
   };
 
