@@ -12,6 +12,14 @@ type User = {
   profilePhoto?: string;
   summary?: string;
   projects?: any[];
+  socials?: {
+    github?: string;
+    linkedin?: string;
+    instagram?: string;
+    // Add more as needed, e.g.:
+    // twitter?: string;
+    // website?: string;
+  };
 };
 
 // fetch my profile (protected)

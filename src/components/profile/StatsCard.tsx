@@ -4,25 +4,28 @@ import { useGetMyStats } from "@/api/userApi";
 import { Skeleton } from "@/components/ui/skeleton";
 
 const Donut = ({
-  value = 0,
-  total = 1,
+  active = 0,
+  completed = 0,
   size = 120,
   onClick,
   label,
 }: {
-  value?: number;
-  total?: number;
+  active?: number;
+  completed?: number;
   size?: number;
   onClick?: () => void;
   label?: string;
 }) => {
   const radius = 36;
   const stroke = 8;
-  const normalizedTotal = Math.max(total, 1);
-  const ratio = Math.min(1, Math.max(0, value / normalizedTotal));
+  const total = Math.max(active + completed, 1);
+
   const circumference = 2 * Math.PI * radius;
-  const dash = circumference * ratio;
-  const gap = circumference - dash;
+  const activeRatio = active / total;
+  const completedRatio = completed / total;
+
+  const activeDash = circumference * activeRatio;
+  const completedDash = circumference * completedRatio;
 
   return (
     <button
@@ -42,7 +45,7 @@ const Donut = ({
           stroke="#e6eefb"
           fill="none"
         />
-        {/* progress */}
+        {/* active arc (sky-500) */}
         <circle
           cx="50"
           cy="50"
@@ -52,13 +55,21 @@ const Donut = ({
           strokeLinecap="round"
           fill="none"
           transform="rotate(-90 50 50)"
-          strokeDasharray={`${dash} ${gap}`}
-          style={{
-            transition: "stroke-dasharray 600ms ease, transform 200ms ease",
-            transformOrigin: "50% 50%",
-            willChange: "transform, stroke-dasharray",
-          }}
-          className="group-hover:scale-105"
+          strokeDasharray={`${activeDash} ${circumference - activeDash}`}
+          className="group-hover:scale-105 transition-all duration-500"
+        />
+        {/* completed arc (emerald-500) - starts where active ends */}
+        <circle
+          cx="50"
+          cy="50"
+          r={radius}
+          strokeWidth={stroke}
+          stroke="#10b981"
+          strokeLinecap="round"
+          fill="none"
+          transform={`rotate(${(activeRatio * 360) - 90} 50 50)`}
+          strokeDasharray={`${completedDash} ${circumference - completedDash}`}
+          className="group-hover:scale-105 transition-all duration-500"
         />
         {/* center text */}
         <text
@@ -69,7 +80,7 @@ const Donut = ({
           className="text-xs font-semibold fill-current text-slate-700"
           style={{ fontSize: 11 }}
         >
-          {Math.round(ratio * 100)}%
+          {total > 0 ? `${Math.round((completed / total) * 100)}%` : "0%"}
         </text>
       </svg>
     </button>
@@ -175,8 +186,6 @@ const StatsCard: React.FC = () => {
     bookmarksCount = 0,
   } = stats;
 
-  const chartTotal = activeProjects + completedProjects || 1;
-
   const handleDonutClick = () => {
     setShowDonutBreakdown((s) => !s);
   };
@@ -188,8 +197,8 @@ const StatsCard: React.FC = () => {
         <div className="text-sm text-gray-500 mb-2">Projects (active vs completed)</div>
 
         <Donut
-          value={completedProjects}
-          total={chartTotal}
+          active={activeProjects}
+          completed={completedProjects}
           size={120}
           onClick={handleDonutClick}
           label="Projects completion donut"
@@ -209,18 +218,18 @@ const StatsCard: React.FC = () => {
         >
           <div className="text-sm text-gray-700 mt-2">
             <div className="flex justify-between">
-              <span>Active</span>
+              <span className="text-sky-600">Active</span>
               <span className="font-medium">{activeProjects}</span>
             </div>
             <div className="flex justify-between mt-1">
-              <span>Completed</span>
+              <span className="text-emerald-600">Completed</span>
               <span className="font-medium">{completedProjects}</span>
             </div>
           </div>
         </div>
       </div>
 
-      {/* middle: tiles - remove onClick handlers */}
+      {/* middle: tiles */}
       <div className="bg-white rounded-lg shadow p-4 grid grid-cols-2 gap-4">
         <StatTile label="Active" value={activeProjects} />
         <StatTile label="Completed" value={completedProjects} />
@@ -246,7 +255,9 @@ const StatsCard: React.FC = () => {
 
         <div className="mt-3">
           <div className="text-sm text-gray-500">Bookmarks</div>
-          <div className="text-lg font-semibold mt-1 cursor-default">{bookmarksCount}</div>
+          <div className="text-lg font-semibold mt-1 cursor-default">
+            {bookmarksCount}
+          </div>
         </div>
       </div>
     </div>
