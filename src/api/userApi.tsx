@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { ENDPOINTS } from "./endpoints";
 import { api } from "@/lib/axios";
 import { toast } from "sonner";
+import { Paginated, Project } from "./projectApi";
 
 type User = {
   _id: string;
@@ -100,4 +101,68 @@ export const useGetMyStats = () => {
   });
 
   return { stats: data, isPending: isLoading, isError, isSuccess };
+};
+
+export const getBookmarks = async (page = 1, limit = 10, search = "", status = ""): Promise<Paginated<Project>> => {
+  const res = await api.get(ENDPOINTS.USER.BOOKMARKS, { params: { page, limit, search, status } });
+  return res.data.data;
+};
+
+/**
+ * Bookmarks
+ */
+export const useGetBookmarks = (page = 1, enabled = false, search = "", status = "") => {
+  const { data, isLoading, isError, isSuccess } = useQuery({
+    queryKey: ["bookmarks", page, search, status],
+    queryFn: () => getBookmarks(page, 10, search, status),
+    enabled,
+    placeholderData: (previousData) => previousData, // replaces keepPreviousData
+  });
+
+  return {
+    projects: data?.items ?? [],
+    total: data?.total ?? 0,
+    page: data?.page ?? page,
+    limit: data?.limit ?? 10,
+    isPending: isLoading,
+    isError,
+    isSuccess,
+  };
+};
+
+/**
+ * Toggle bookmark on a project.
+ * Backend: PUT /api/user/bookmarks/:projectId  with body { action: 'add' | 'remove' }
+ * Server should respond with { success, message, data? } and ideally indicate which action occurred.
+ */
+export const toggleBookmarkApi = async (projectId: string, action: "add" | "remove") => {
+  const url = ENDPOINTS.USER.BOOKMARK_TOGGLE.replace(":projectId", projectId);
+  const res = await api.put(url, { action });
+  return res.data;
+};
+
+/**
+ * Hook: useToggleBookmark
+ * Matches updateMyProfile pattern: returns mutateAsync named toggleBookmark and flags.
+ */
+export const useToggleBookmark = () => {
+  const queryClient = useQueryClient();
+
+  const { mutateAsync: toggleBookmark, isError, isPending, isSuccess } = useMutation({
+    mutationFn: ({ projectId, action }: { projectId: string; action: "add" | "remove" }) =>
+      toggleBookmarkApi(projectId, action),
+    onSuccess: (res) => {
+      // toast message from server if provided, else fallback
+      toast.success(res?.message || "Bookmark updated");
+
+      // Invalidate related queries so lists refresh
+      queryClient.invalidateQueries({ queryKey: ["stats"], exact: false });
+    },
+    onError: (err: any) => {
+      const msg = err?.response?.data?.message || "Failed to update bookmark";
+      toast.error(msg);
+    },
+  });
+
+  return { toggleBookmark, isError, isPending, isSuccess };
 };

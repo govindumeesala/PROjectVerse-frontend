@@ -3,6 +3,27 @@
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { ENDPOINTS } from "./endpoints";
+import {api} from "@/lib/axios";
+
+// First, define proper types
+export type Project = {
+  _id: string;
+  title: string;
+  description?: string;
+  projectPhoto?: string;
+  status?: "completed" | "ongoing";
+  owner?: { _id: string; name?: string; profilePhoto?: string };
+  domain?: string[] | string;
+  techStack?: string[] | string;
+  contributors?: any[];
+};
+
+export type Paginated<T> = {
+  items: T[];
+  total: number;
+  page: number;
+  limit: number;
+};
 import { api } from "@/lib/axios";
 
 // --- Create Project --- //
@@ -38,25 +59,57 @@ export const useCreateProject = () => {
   return { createProject, isPending, isError, isSuccess };
 };
 
-// --- My Projects --- //
-export const getMyProjects = async () => {
-  // GET /projects/my
-  const res = await api.get(ENDPOINTS.PROJECT.MY_PROJECTS);
+// Update the get function with proper typing
+export const getMyProjects = async (page = 1, limit = 3, search = "", status = ""): Promise<Paginated<Project>> => {
+  const res = await api.get(ENDPOINTS.PROJECT.MY_PROJECTS, { params: { page, limit, search, status } });
   return res.data.data;
 };
 
-export const useGetMyProjects = () => {
-  const {
-    data: projects,
-    isPending,
-    isError,
-    isSuccess,
-  } = useQuery({
-    queryKey: ["myProjects"],
-    queryFn: getMyProjects,
+// Update the hook with proper typing and modern React Query syntax
+export const useGetMyProjects = (page = 1, enabled = true, search = "", status = "") => {
+  const { data, isLoading, isError, isSuccess } = useQuery<Paginated<Project>>({
+    queryKey: ["myProjects", page, search, status],
+    queryFn: () => getMyProjects(page, 3, search, status),
+    enabled,
+    placeholderData: (previousData) => previousData, // replaces keepPreviousData
   });
 
-  return { projects, isPending, isError, isSuccess };
+  return {
+    projects: data?.items ?? [],
+    total: data?.total ?? 0,
+    page: data?.page ?? 1,
+    limit: data?.limit ?? 10,
+    isPending: isLoading,
+    isError,
+    isSuccess,
+  };
+};
+
+export const getContributedProjects = async (page = 1, limit = 10, search = "", status = ""): Promise<Paginated<Project>> => {
+  const res = await api.get(ENDPOINTS.PROJECT.CONTRIBUTED, { params: { page, limit, search, status } });
+  return res.data.data;
+};
+
+/**
+ * Contributed Projects
+ */
+export const useGetContributedProjects = (page = 1, enabled = false, search = "", status = "") => {
+  const { data, isLoading, isError, isSuccess } = useQuery({
+    queryKey: ["contributedProjects", page, search, status],
+    queryFn: () => getContributedProjects(page, 10, search, status),
+    enabled,
+    placeholderData: (previousData) => previousData, // replaces keepPreviousData
+  });
+
+  return {
+    projects: data?.items ?? [],
+    total: data?.total ?? 0,
+    page: data?.page ?? page,
+    limit: data?.limit ?? 10,
+    isPending: isLoading,
+    isError,
+    isSuccess,
+  };
 };
 
 // --- Project Feed with filters, search, pagination --- //
