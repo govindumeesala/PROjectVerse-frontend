@@ -45,8 +45,9 @@ export const getAllUsers = async () => {
 
 # TASKS FOR GOVI
 
-1. Add social media links to profile header - p0
+1. Add social media links to profile header - p0 - done
 2. update navbar with profile pic and first name - p1 
+3. update the donut in stats component - p0
 
 ## Projects
 2. A project card with like,comment,share  on bottom projectname,description,techStack,domain,githubURL photo if present on bottom.

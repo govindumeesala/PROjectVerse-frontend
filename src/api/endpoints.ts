@@ -12,12 +12,14 @@ export const ENDPOINTS = {
     ME: `${BASE_API}/user`, // Endpoint to get the current user's details
     ALL_USERS: `${BASE_API}/user/all`, // Endpoint to fetch all users
     STATS: `${BASE_API}/user/stats`, // Endpoint to fetch user statistics
+    BOOKMARKS: `${BASE_API}/user/bookmarks`, // Endpoint to fetch user bookmarks
   },
   PROJECT: {
     CREATE: `${BASE_API}/project/create`,
     LIST: `${BASE_API}/project/list`,
-    // Add more project endpoints here
-    MY_PROJECTS: `${BASE_API}/project/my-projects`, // Endpoint to get user's projects
+    MY_PROJECTS: `${BASE_API}/project/my-projects`,
+    CONTRIBUTED: `${BASE_API}/project/contributed`,
+
   },
   // Add other resource endpoints as needed
 };

@@ -1,3 +1,5 @@
+// should not be used in the profile page 
+
 import React from "react";
 import { useGetMyProjects } from "@/api/projectApi";
 import { Skeleton } from "@/components/ui/skeleton";

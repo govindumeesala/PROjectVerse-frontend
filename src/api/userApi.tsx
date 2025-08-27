@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { ENDPOINTS } from "./endpoints";
 import { api } from "@/lib/axios";
 import { toast } from "sonner";
+import { Paginated, Project } from "./projectApi";
 
 type User = {
   _id: string;
@@ -100,4 +101,31 @@ export const useGetMyStats = () => {
   });
 
   return { stats: data, isPending: isLoading, isError, isSuccess };
+};
+
+export const getBookmarks = async (page = 1, limit = 10): Promise<Paginated<Project>> => {
+  const res = await api.get(ENDPOINTS.USER.BOOKMARKS, { params: { page, limit } });
+  return res.data.data;
+};
+
+/**
+ * Bookmarks
+ */
+export const useGetBookmarks = (page = 1, enabled = false) => {
+  const { data, isLoading, isError, isSuccess } = useQuery({
+    queryKey: ["bookmarks", page],
+    queryFn: () => getBookmarks(page, 10),
+    enabled,
+    placeholderData: (previousData) => previousData, // replaces keepPreviousData
+  });
+
+  return {
+    projects: data?.items ?? [],
+    total: data?.total ?? 0,
+    page: data?.page ?? page,
+    limit: data?.limit ?? 10,
+    isPending: isLoading,
+    isError,
+    isSuccess,
+  };
 };
