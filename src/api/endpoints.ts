@@ -13,6 +13,7 @@ export const ENDPOINTS = {
     ALL_USERS: `${BASE_API}/user/all`, // Endpoint to fetch all users
     STATS: `${BASE_API}/user/stats`, // Endpoint to fetch user statistics
     BOOKMARKS: `${BASE_API}/user/bookmarks`, // Endpoint to fetch user bookmarks
+    BOOKMARK_TOGGLE: `${BASE_API}/user/bookmarks/:projectId`, // Endpoint to toggle bookmark on a project
   },
   PROJECT: {
     CREATE: `${BASE_API}/project/create`,

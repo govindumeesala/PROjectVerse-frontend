@@ -45,6 +45,10 @@ export const getAllUsers = async () => {
 
 # TASKS FOR GOVI
 
+1. add actions in projects tab
+  1. bookmark toggle - DONE
+  2. my project open with edit option - p0 
+  3. collaborations open view - p0 
 1. Add social media links to profile header - p0 - done
 2. update navbar with profile pic and first name - p1 
 3. update the donut in stats component - p0

@@ -16,6 +16,7 @@ export type Project = {
   owner?: { _id: string; name?: string; profilePhoto?: string };
   domain?: string[] | string;
   techStack?: string[] | string;
+  contributors?: any[];
 };
 
 export type Paginated<T> = {
@@ -56,16 +57,16 @@ export const useCreateProject = () => {
 };
 
 // Update the get function with proper typing
-export const getMyProjects = async (page = 1, limit = 3): Promise<Paginated<Project>> => {
-  const res = await api.get(ENDPOINTS.PROJECT.MY_PROJECTS, { params: { page, limit } });
+export const getMyProjects = async (page = 1, limit = 3, search = "", status = ""): Promise<Paginated<Project>> => {
+  const res = await api.get(ENDPOINTS.PROJECT.MY_PROJECTS, { params: { page, limit, search, status } });
   return res.data.data;
 };
 
 // Update the hook with proper typing and modern React Query syntax
-export const useGetMyProjects = (page = 1, enabled = true) => {
+export const useGetMyProjects = (page = 1, enabled = true, search = "", status = "") => {
   const { data, isLoading, isError, isSuccess } = useQuery<Paginated<Project>>({
-    queryKey: ["myProjects", page],
-    queryFn: () => getMyProjects(page, 3),
+    queryKey: ["myProjects", page, search, status],
+    queryFn: () => getMyProjects(page, 3, search, status),
     enabled,
     placeholderData: (previousData) => previousData, // replaces keepPreviousData
   });
@@ -81,18 +82,18 @@ export const useGetMyProjects = (page = 1, enabled = true) => {
   };
 };
 
-export const getContributedProjects = async (page = 1, limit = 10): Promise<Paginated<Project>> => {
-  const res = await api.get(ENDPOINTS.PROJECT.CONTRIBUTED, { params: { page, limit } });
+export const getContributedProjects = async (page = 1, limit = 10, search = "", status = ""): Promise<Paginated<Project>> => {
+  const res = await api.get(ENDPOINTS.PROJECT.CONTRIBUTED, { params: { page, limit, search, status } });
   return res.data.data;
 };
 
 /**
  * Contributed Projects
  */
-export const useGetContributedProjects = (page = 1, enabled = false) => {
+export const useGetContributedProjects = (page = 1, enabled = false, search = "", status = "") => {
   const { data, isLoading, isError, isSuccess } = useQuery({
-    queryKey: ["contributedProjects", page],
-    queryFn: () => getContributedProjects(page, 10),
+    queryKey: ["contributedProjects", page, search, status],
+    queryFn: () => getContributedProjects(page, 10, search, status),
     enabled,
     placeholderData: (previousData) => previousData, // replaces keepPreviousData
   });

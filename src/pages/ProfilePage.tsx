@@ -2,7 +2,7 @@
 import React from "react";
 import ProfileHeader from "@/components/profile/ProfileHeader";
 import StatsCard from "@/components/profile/StatsCard";
-import ProjectsTabs from "@/components/profile/ProjectsTabs";
+import ProjectsTabs from "@/components/profile/projectsTabs/ProjectsTabs";
 
 const ProfilePage: React.FC = () => {
   // If you need the user's projects list to show below, fetch it here (optional).
