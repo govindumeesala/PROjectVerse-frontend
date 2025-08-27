@@ -11,7 +11,6 @@ Pagination & infinite scroll
 
 Syncing with server data
 
-
 # Anywhere you call protected routes, use api instead of axios:
 
 // src/api/userApi.ts
@@ -40,8 +39,9 @@ export const getAllUsers = async () => {
 2. store contributors in the contributors collection only - done
 3. update the create project controller - TODO (p0) - done
 4. dont toast in form (create project form) - we are doing it in api file - TODO (p1) - done
-5. like tech stack add dropdown for domain also - TODO (P0)
+5. like tech stack add dropdown for domain also - TODO (P0) - done.
 6. add _id along with the name and email in getAllusers route - done
+8. Drag and drop working in create-project form.
 
 # TASKS FOR GOVI
 
