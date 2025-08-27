@@ -1,3 +1,4 @@
+import ProjectFeed from "@/components/home/feed/ProjectFeed";
 import TopProjects from "@/components/profile/TopProjects";
 
 const HomePage = () => {
@@ -5,6 +6,7 @@ const HomePage = () => {
         <>
             <TopProjects/>
             <div>HomePage</div>
+            <ProjectFeed/>
         </>
     )
 }

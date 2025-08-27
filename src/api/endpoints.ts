@@ -18,6 +18,14 @@ export const ENDPOINTS = {
     LIST: `${BASE_API}/project/list`,
     // Add more project endpoints here
     MY_PROJECTS: `${BASE_API}/project/my-projects`, // Endpoint to get user's projects
+    PROJECT_FEED: `${BASE_API}/project/feed`,
+    PROJECT_BY_ID: (id: string) => `${BASE_API}/project/${id}`,
+    LIKE_PROJECT: (id: string) => `${BASE_API}/project/${id}/like`,
+    UNLIKE_PROJECT: (id: string) => `${BASE_API}/project/${id}/unlike`,
+    COMMENTS: (id: string) => `${BASE_API}/project/${id}/comments`,
+    BOOKMARK_PROJECT: (id: string) => `${BASE_API}/bookmarks/${id}`,
+    UNBOOKMARK_PROJECT: (id: string) => `${BASE_API}/bookmarks/${id}`,
+    REQUEST_TO_JOIN: (id: string) => `${BASE_API}/project/${id}/request-join`,
   },
   // Add other resource endpoints as needed
 };

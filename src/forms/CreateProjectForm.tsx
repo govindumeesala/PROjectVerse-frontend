@@ -32,7 +32,7 @@ const projectSchema = z.object({
   domain: z.array(z.string()).min(1, "Select at least one domain"),
   techStack: z.array(z.string()).min(1, "Select at least one tech"),
   status: z.enum(["ongoing", "completed"]),
-  lookingForCollaborators: z.boolean().optional(),
+  lookingForContributors: z.boolean().optional(),
   contributors: z.array(z.string()).optional(),
   projectPhoto: z.any().optional(), // file handled separately
   githubURL: z.string().url("Enter a valid GitHub URL").optional(),
@@ -180,7 +180,7 @@ export const CreateProjectForm = () => {
       domain: [],
       techStack: [],
       status: "ongoing",
-      lookingForCollaborators: false,
+      lookingForContributors: false,
       contributors: [],
       projectPhoto: "",
       githubURL: "",
@@ -224,7 +224,7 @@ export const CreateProjectForm = () => {
         fd.append("domain", data.domain);
         (data.techStack || []).forEach((t: string) => fd.append("techStack[]", t));
         fd.append("status", data.status);
-        fd.append("lookingForCollaborators", data.lookingForCollaborators ? "true" : "false");
+        fd.append("lookingForContributors", data.lookingForContributors ? "true" : "false");
         (data.contributors || []).forEach((c: string) => fd.append("contributors[]", c));
         fd.append("projectPhoto", data.projectPhoto);
         if (data.githubURL) fd.append("githubURL", data.githubURL);
@@ -427,7 +427,7 @@ export const CreateProjectForm = () => {
                 {form.watch("status") !== "completed" && (
                   <FormField
                     control={form.control}
-                    name="lookingForCollaborators"
+                    name="lookingForContributors"
                     render={({ field }) => (
                       <FormItem className="flex items-start space-x-3">
                         <FormControl>
@@ -439,7 +439,7 @@ export const CreateProjectForm = () => {
                         </FormControl>
                         <div className="space-y-1">
                           <FormLabel className="text-sm font-medium text-gray-700 cursor-pointer">
-                            Looking for collaborators
+                            Looking for contributors
                           </FormLabel>
                           <p className="text-sm text-gray-500">
                             Check this if you're open to working with other developers on this project.

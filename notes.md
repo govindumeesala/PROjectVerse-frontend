@@ -33,6 +33,15 @@ export const getAllUsers = async () => {
 2. Sidebar on left with myprojects, projects,e.t.c
 3. Notifications on the right bar
 
+##
+Sorting/Filtering bar → filter by domain (AI/Web/IoT), status, tech stack.
+
+Notifications inline → show "3 new requests on your project" directly on card.
+
+Collaborator avatars → mini preview of who’s inside the project (like GitHub repo collaborators).
+
+"Looking for collaborators" badge (like a "We’re hiring" tag).
+
 # TASKS FOR SUDHEER
 # create project 
 1. removed contributors field  from project model - done
@@ -41,7 +50,15 @@ export const getAllUsers = async () => {
 4. dont toast in form (create project form) - we are doing it in api file - TODO (p1) - done
 5. like tech stack add dropdown for domain also - TODO (P0) - done.
 6. add _id along with the name and email in getAllusers route - done
+11. update status on projectCard to ongoing,completed,lookingforCollaboration - done 
+11. a (change color of looking for collaborators)
+12. comment count not updating - done
 8. Drag and drop working in create-project form.
+9. Bookmarks, looking for  collaboration
+10. skeleton on homepage
+11. Links for urls
+12. create-project button hover cursor:pointer
+
 
 # TASKS FOR GOVI
 
