@@ -1,92 +1,58 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Heart, MessageCircle, Share2, Bookmark, Github, Globe, Link2 } from "lucide-react";
-import CommentSection from "./CommentSection";
 import {
-  likeProject,
-  unlikeProject,
-  bookmarkProject,
-  unbookmarkProject,
-  requestToJoinProject,
-} from "@/api/projectApi";
+  Heart,
+  MessageCircle,
+  Share2,
+  Bookmark,
+  Github,
+  Globe,
+  Link2,
+} from "lucide-react";
+import CommentSection from "./CommentSection";
+import { likeProject,unlikeProject, requestToJoinProject } from "@/api/projectApi";
+import { toggleBookmarkApi } from "@/api/userApi";
 import { toast } from "sonner";
-import { getComments } from "@/api/commentApi";
-import { useQuery } from "@tanstack/react-query";
 
 export default function ProjectCard({ project, refetch }: any) {
   const [showComments, setShowComments] = useState(false);
-  const [likes, setLikes] = useState(project.likes?.length || 0);
-  const [liked, setLiked] = useState(
-    project.likes?.some((u: string) => u === localStorage.getItem("userId"))
-  );
-  const [bookmarked, setBookmarked] = useState(
-    project.bookmarks?.some((u: string) => u === localStorage.getItem("userId"))
-  );
+  const [likes, setLikes] = useState(project.likesCount || 0);
+  const [liked, setLiked] = useState(project.likedByUser || false);
+  const [bookmarked, setBookmarked] = useState(project.bookmarkedByUser || false);
+  const [commentsCount, setCommentsCount] = useState(project.commentsCount || 0);
 
-  // 🔹 Fetch comments
-  const { data: comments } = useQuery({
-    queryKey: ["comments", project._id],
-    queryFn: () => getComments(project._id),
-  });
-
-  // 🔹 Sync comment count with fetched comments
-  const [commentsCount, setCommentsCount] = useState(0);
-  useEffect(() => {
-    if (comments) {
-      setCommentsCount(comments.length);
-    }
-  }, [comments]);
-
-  // 🔹 Compute status dynamically
-  const displayStatus =
-    project.status === "ongoing" && project.lookingForContributors
-      ? "Looking for collaborators"
-      : project.status;
-
-  // ❤️ Like/Unlike
+ 
+  // ❤️ Toggle Like
   const handleLike = async () => {
     try {
-      if (liked) {
-        const res = await unlikeProject(project._id);
-        if (res.success) {
-          setLiked(false);
-          setLikes((prev: number) => prev - 1);
-        }
-      } else {
-        const res = await likeProject(project._id);
-        if (res.success) {
-          setLiked(true);
-          setLikes((prev: number) => prev + 1);
-        }
+      const res = await (liked ? unlikeProject : likeProject)(project._id);
+      if (res.success) {
+        setLiked((prev: boolean) => !prev);
+        setLikes(res.data.likes); // backend sends updated count
       }
     } catch {
       toast.error("Failed to update like");
     }
   };
 
-  // 🔖 Bookmark toggle
+  // 🔖 Toggle Bookmark
   const handleBookmark = async () => {
     try {
-      if (bookmarked) {
-        const res = await unbookmarkProject(project._id);
-        if (res.success) {
-          setBookmarked(false);
-          toast.success("Removed from bookmarks");
-        }
-      } else {
-        const res = await bookmarkProject(project._id);
-        if (res.success) {
-          setBookmarked(true);
-          toast.success("Added to bookmarks");
-        }
+      const action = bookmarked ? "remove" : "add";
+      const res = await toggleBookmarkApi(project._id, action);
+      if (res.success) {
+        setBookmarked(action === "add");
+        toast.success(
+          action === "add" ? "Added to bookmarks" : "Removed from bookmarks"
+        );
       }
     } catch {
       toast.error("Failed to update bookmark");
     }
   };
-  console.log(project);
-  // 📤 Share project link
+
+  // 📤 Share
   const handleShare = async () => {
     try {
       const url = `${window.location.origin}/project/${project._id}`;
@@ -97,32 +63,33 @@ export default function ProjectCard({ project, refetch }: any) {
     }
   };
 
-  // 🙋 Request to join project
+  // 🙋 Request to Join
   const handleRequestJoin = async () => {
     try {
       const res = await requestToJoinProject(project._id);
-      if (res.success) {
-        toast.success("Request sent successfully!");
-      }
+      if (res.success) toast.success("Request sent successfully!");
     } catch {
       toast.error("Failed to send join request");
     }
   };
 
+  const displayStatus =
+    project.status === "ongoing" && project.lookingForContributors
+      ? "Looking for collaborators"
+      : project.status;
+
   return (
-    <Card className="w-full shadow-lg rounded-2xl">
-      <CardHeader className="flex justify-between items-center">
+    <Card className="w-full shadow-md rounded-2xl border border-slate-100 bg-white overflow-hidden">
+      <CardHeader className="flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
         <div>
-          <h2 className="font-bold text-lg">{project.title}</h2>
-          <p className="text-sm text-gray-500">{project.owner?.name}</p>
+          <h2 className="font-semibold text-lg text-slate-800 leading-tight">{project.title}</h2>
+          <p className="text-sm text-slate-500">{project.owner?.name}</p>
           {project.domain && (
-            <span className="text-xs text-gray-600 italic">
-              Domain: {project.domain}
-            </span>
+            <span className="text-xs text-slate-600 italic">Domain: {project.domain}</span>
           )}
         </div>
         <span
-          className={`px-3 py-1 text-xs rounded-full ${
+          className={`self-start md:self-auto mt-1 md:mt-0 px-3 py-1 text-xs rounded-full ${
             displayStatus === "ongoing" || displayStatus === "Looking for collaborators"
               ? "bg-blue-100 text-blue-700"
               : "bg-green-100 text-green-700"
@@ -133,28 +100,23 @@ export default function ProjectCard({ project, refetch }: any) {
       </CardHeader>
 
       <CardContent className="space-y-4">
-        <p className="text-sm text-gray-700">{project.description}</p>
+        <p className="text-sm text-slate-700 leading-relaxed">{project.description}</p>
 
-        {/* Tech stack */}
         <div className="flex flex-wrap gap-2">
           {project.techStack?.map((tech: string, idx: number) => (
-            <span
-              key={idx}
-              className="px-2 py-1 text-xs bg-gray-100 rounded-lg"
-            >
+            <span key={idx} className="px-2 py-1 text-xs bg-slate-100 text-slate-700 rounded-full">
               {tech}
             </span>
           ))}
         </div>
 
-        {/* Project URLs (GitHub, Demo, Additional) */}
         <div className="flex flex-wrap gap-3">
           {project.githubURL && (
             <a
               href={project.githubURL}
               target="_blank"
               rel="noopener noreferrer"
-              className="px-3 py-1 text-xs rounded-full bg-gray-800 text-white flex items-center gap-1 hover:bg-gray-900 transition"
+              className="px-3 py-1 text-xs rounded-full bg-slate-900 text-white flex items-center gap-1 hover:bg-black transition"
             >
               <Github className="w-3 h-3" /> GitHub
             </a>
@@ -174,7 +136,7 @@ export default function ProjectCard({ project, refetch }: any) {
               href={project.additionalUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="px-3 py-1 text-xs rounded-full bg-green-600 text-white flex items-center gap-1 hover:bg-green-700 transition"
+              className="px-3 py-1 text-xs rounded-full bg-emerald-600 text-white flex items-center gap-1 hover:bg-emerald-700 transition"
             >
               <Link2 className="w-3 h-3" /> More
             </a>
@@ -182,68 +144,60 @@ export default function ProjectCard({ project, refetch }: any) {
         </div>
 
         {project.projectPhoto && (
-          <img
-            src={project.projectPhoto}
-            alt={project.title}
-            className="rounded-xl w-full object-cover max-h-64"
-          />
+          <img src={project.projectPhoto} alt={project.title} className="rounded-xl w-full object-cover max-h-72" />
         )}
 
-        {/* Action buttons */}
-        <div className="flex items-center gap-6 pt-3">
-          {/* ❤️ Like */}
+        <div className="flex flex-wrap items-center gap-3 pt-3">
           <Button
             variant="ghost"
             size="sm"
             onClick={handleLike}
-            className={liked ? "text-red-500" : ""}
+            className={(project.likedByUser || liked) ? "text-red-500" : "text-slate-600"}
           >
-            <Heart className="w-4 h-4 mr-1" fill={liked ? "red" : "none"} /> {likes}
+            <Heart className="w-4 h-4 mr-1" fill={(project.likedByUser || liked) ? "red" : "none"} /> {likes}
           </Button>
 
-          {/* 💬 Comment */}
           <Button
             variant="ghost"
             size="sm"
             onClick={() => setShowComments((prev) => !prev)}
+            className="text-slate-600"
           >
             <MessageCircle className="w-4 h-4 mr-1" /> {commentsCount}
           </Button>
 
-          {/* 🔖 Bookmark */}
           <Button
             variant="ghost"
             size="sm"
             onClick={handleBookmark}
-            className={bookmarked ? "text-blue-500" : ""}
+            className={(project.bookmarkedByUser || bookmarked)? "text-blue-500" : "text-slate-600"}
           >
-            <Bookmark className="w-4 h-4 mr-1" fill={bookmarked ? "blue" : "none"} />
+            <Bookmark className="w-4 h-4 mr-1" fill={(project.bookmarkedByUser || bookmarked) ? "blue" : "none"} />
           </Button>
 
-          {/* 📤 Share */}
-          <Button variant="ghost" size="sm" onClick={handleShare}>
+          <Button variant="ghost" size="sm" onClick={handleShare} className="text-slate-600">
             <Share2 className="w-4 h-4 mr-1" />
           </Button>
 
-          {/* 🙋 Request to join */}
           {project.lookingForContributors && (
             <Button
               variant="outline"
               size="sm"
               onClick={handleRequestJoin}
-              className="ml-auto"
+              className="md:ml-auto w-full md:w-auto"
             >
               Request to Join
             </Button>
           )}
         </div>
 
-        {/* Inline comments */}
         {showComments && (
-          <CommentSection
-            projectId={project._id}
-            onNewComment={() => setCommentsCount((c: number) => c + 1)}
-          />
+          <div className="mt-2 rounded-xl border border-slate-100 bg-slate-50/60 p-3">
+            <CommentSection
+              projectId={project._id}
+              onNewComment={() => setCommentsCount((c: number) => c + 1)}
+            />
+          </div>
         )}
       </CardContent>
     </Card>

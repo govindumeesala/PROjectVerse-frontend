@@ -283,7 +283,7 @@ export const CreateProjectForm = () => {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel className="text-sm font-medium text-gray-700">
-                        Project title <span className="text-red-500 ml-1">*</span>
+                        Project title<span className="text-red-500">*</span>
                       </FormLabel>
                       <FormControl>
                         <Input 
@@ -307,7 +307,7 @@ export const CreateProjectForm = () => {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel className="text-sm font-medium text-gray-700">
-                        Description <span className="text-red-500 ml-1">*</span>
+                        Description <span className="text-red-500">*</span>
                       </FormLabel>
                       <FormControl>
                         <Textarea 
@@ -349,7 +349,7 @@ export const CreateProjectForm = () => {
                     <FormItem>
                       <FormLabel className="text-sm font-medium text-gray-700 flex items-center">
                         <Globe className="w-4 h-4 mr-2 text-blue-500" />
-                        Domain <span className="text-red-500 ml-1">*</span>
+                        Domain <span className="text-red-500">*</span>
                       </FormLabel>
                       <FormControl>
                         <DomainMultiSelect value={field.value} onChange={field.onChange} />
@@ -370,7 +370,7 @@ export const CreateProjectForm = () => {
                     <FormItem>
                       <FormLabel className="text-sm font-medium text-gray-700 flex items-center">
                         <Code className="w-4 h-4 mr-2 text-emerald-500" />
-                        Technology Stack <span className="text-red-500 ml-1">*</span>
+                        Technology Stack <span className="text-red-500">*</span>
                       </FormLabel>
                       <FormControl>
                         <TechMultiSelect value={field.value} onChange={field.onChange} />
@@ -402,7 +402,7 @@ export const CreateProjectForm = () => {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel className="text-sm font-medium text-gray-700">
-                        Project Status <span className="text-red-500 ml-1">*</span>
+                        Project Status <span className="text-red-500">*</span>
                       </FormLabel>
                       <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
@@ -565,7 +565,7 @@ export const CreateProjectForm = () => {
                       <FormItem>
                         <FormLabel className="text-sm font-medium text-gray-700 flex items-center">
                           <GitBranch className="w-4 h-4 mr-2 text-gray-600" />
-                          GitHub Repository
+                          GitHub Repository<span className="text-red-500">*</span>
                         </FormLabel>
                         <FormControl>
                           <Input 

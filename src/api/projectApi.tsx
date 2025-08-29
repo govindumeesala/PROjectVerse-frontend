@@ -24,7 +24,6 @@ export type Paginated<T> = {
   page: number;
   limit: number;
 };
-import { api } from "@/lib/axios";
 
 // --- Create Project --- //
 export const createProjectApi = async (projectData: FormData): Promise<any> => {
@@ -66,10 +65,10 @@ export const getMyProjects = async (page = 1, limit = 3, search = "", status = "
 };
 
 // Update the hook with proper typing and modern React Query syntax
-export const useGetMyProjects = (page = 1, enabled = true, search = "", status = "") => {
+export const useGetMyProjects = (page = 1, enabled = true, search = "", status = "", limit = 3) => {
   const { data, isLoading, isError, isSuccess } = useQuery<Paginated<Project>>({
     queryKey: ["myProjects", page, search, status],
-    queryFn: () => getMyProjects(page, 3, search, status),
+    queryFn: () => getMyProjects(page, limit, search, status),
     enabled,
     placeholderData: (previousData) => previousData, // replaces keepPreviousData
   });
@@ -176,22 +175,12 @@ export const useProjectFeed = ({
 };
 
 export const likeProject = async (projectId: string) => {
-  const res = await api.post(ENDPOINTS.PROJECT.LIKE_PROJECT(projectId));
+  const res = await api.put(ENDPOINTS.PROJECT.LIKE_PROJECT(projectId));
   return res.data;
 };
 
 export const unlikeProject = async (projectId: string) => {
-  const res = await api.post(ENDPOINTS.PROJECT.UNLIKE_PROJECT(projectId));
-  return res.data;
-};
-
-export const bookmarkProject = async (projectId: string) => {
-  const res = await api.post(ENDPOINTS.PROJECT.BOOKMARK_PROJECT(projectId));
-  return res.data;
-};
-
-export const unbookmarkProject = async (projectId: string) => {
-  const res = await api.post(ENDPOINTS.PROJECT.UNBOOKMARK_PROJECT(projectId));
+  const res = await api.put(ENDPOINTS.PROJECT.UNLIKE_PROJECT(projectId));
   return res.data;
 };
 

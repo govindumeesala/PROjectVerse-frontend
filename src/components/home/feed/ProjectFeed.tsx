@@ -4,6 +4,7 @@ import ProjectCard from "./ProjectCard";
 import ProjectFilters from "./ProjectFilters";
 import { useState } from "react";
 import { useInView } from "react-intersection-observer";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function ProjectFeed() {
   const [filters, setFilters] = useState<{
@@ -39,10 +40,42 @@ export default function ProjectFeed() {
     fetchNextPage();
   }
 
+  const isInitialLoading = !data && !isFetchingNextPage;
+
   return (
-    <div className="max-w-3xl mx-auto space-y-6">
+    <div className="space-y-6">
+      {/* Home Title */}
+      <div className="pb-4">
+        <h1 className="text-2xl font-semibold text-slate-800">Home</h1>
+      </div>
+
       <ProjectFilters onFilterChange={setFilters} />
       
+      {isInitialLoading && (
+        <div className="space-y-4">
+          <div className="bg-white rounded-2xl shadow p-4 space-y-3">
+            <Skeleton className="h-5 w-40" />
+            <Skeleton className="h-4 w-64" />
+            <Skeleton className="h-48 w-full" />
+            <div className="flex gap-3">
+              <Skeleton className="h-8 w-16" />
+              <Skeleton className="h-8 w-16" />
+              <Skeleton className="h-8 w-16" />
+            </div>
+          </div>
+          <div className="bg-white rounded-2xl shadow p-4 space-y-3">
+            <Skeleton className="h-5 w-40" />
+            <Skeleton className="h-4 w-64" />
+            <Skeleton className="h-48 w-full" />
+            <div className="flex gap-3">
+              <Skeleton className="h-8 w-16" />
+              <Skeleton className="h-8 w-16" />
+              <Skeleton className="h-8 w-16" />
+            </div>
+          </div>
+        </div>
+      )}
+
       {projects.map((project, idx) => {
         // Attach observer to last project card
         if (idx === projects.length - 1) {

@@ -50,9 +50,12 @@ export default function CommentSection({ projectId,onNewComment }: { projectId: 
 
       {/* Comments list */}
       {isLoading ? (
-        <p className="text-sm text-gray-500">Loading comments...</p>
+        <div className="space-y-2">
+          <div className="h-6 bg-slate-100 rounded" />
+          <div className="h-6 bg-slate-100 rounded w-2/3" />
+        </div>
       ) : (
-        <div className="space-y-2 max-h-40 overflow-y-auto">
+        <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
           {comments?.length ? (
             comments.map((c: any) => (
               <div key={c._id} className="flex items-start gap-2">
@@ -61,9 +64,9 @@ export default function CommentSection({ projectId,onNewComment }: { projectId: 
                   alt={c.user?.name}
                   className="w-8 h-8 rounded-full"
                 />
-                <div className="bg-gray-100 rounded-lg px-3 py-2 text-sm">
-                  <span className="font-semibold">{c.user?.name}</span>
-                  <p>{c.content}</p>
+                <div className="bg-white border border-slate-200 rounded-xl px-3 py-2 text-sm shadow-sm">
+                  <span className="font-medium text-slate-800">{c.user?.name}</span>
+                  <p className="text-slate-700">{c.content}</p>
                 </div>
               </div>
             ))

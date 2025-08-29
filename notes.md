@@ -54,14 +54,13 @@ Collaborator avatars → mini preview of who’s inside the project (like GitHub
 11. a (change color of looking for collaborators)
 12. comment count not updating - done
 8. Drag and drop working in create-project form.
-9. Bookmarks, looking for  collaboration
+9. looking for  collaboration
 10. skeleton on homepage
 11. Links for urls
-12. create-project button hover cursor:pointer
+
 
 
 # TASKS FOR GOVI
-
 1. add actions in projects tab
   1. bookmark toggle - DONE
   2. my project open with edit option - p0 
