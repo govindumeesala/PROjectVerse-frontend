@@ -1,0 +1,47 @@
+
+export const TECHNOLOGIES = [
+  "React",
+  "Angular",
+  "Vue",
+  "Node.js",
+  "Express",
+  "MongoDB",
+  "TypeScript",
+  "JavaScript",
+  "Python",
+  "Django",
+  "Flask",
+  "Java",
+  "Spring Boot",
+  "C#",
+  "ASP.NET",
+  "Ruby on Rails",
+  "PHP",
+  "Laravel",
+  "Go",
+  "Rust",
+  "C++",
+  "Next.js",
+  "Tailwind CSS",
+  "Bootstrap",
+  "Sass",
+  "GraphQL",
+  "Redux",
+  "Firebase",
+  "AWS",
+  "Docker",
+  "Kubernetes"
+];
+
+export const DOMAINS = [
+  "Web Development",
+  "Artificial Intelligence",
+  "Deep Learning",
+  "Machine Learning",
+  "Cyber Security",
+  "Mobile Development",
+  "Data Science",
+  "Blockchain",
+  "IoT",
+  "Cloud Computing"
+]

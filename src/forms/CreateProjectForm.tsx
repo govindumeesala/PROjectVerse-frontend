@@ -25,6 +25,8 @@ import {
 } from "@/components/ui/select";
 import { useGetAllUsers } from "@/api/userApi";
 import { UploadCloud, Globe, Code, Users, Image, Link, GitBranch } from "lucide-react";
+import { MultiSelect } from "@/components/ui/MultiSelect";
+import { TECHNOLOGIES,DOMAINS } from "@/constants/projectConstants";
 
 const projectSchema = z.object({
   title: z.string().min(1, "Title is required"),
@@ -40,133 +42,6 @@ const projectSchema = z.object({
   demoURL: z.string().url("Enter a valid Demo URL").optional().or(z.literal("")),
 });
 
-const TECHNOLOGIES = [
-  "React",
-  "Angular",
-  "Vue",
-  "Node.js",
-  "Express",
-  "MongoDB",
-  "TypeScript",
-  "JavaScript",
-  "Python",
-  "Django",
-  "Flask",
-  "Java",
-  "Spring Boot",
-  "C#",
-  "ASP.NET",
-  "Ruby on Rails",
-  "PHP",
-  "Laravel",
-  "Go",
-  "Rust",
-  "C++",
-  "Next.js",
-  "Tailwind CSS",
-  "Bootstrap",
-  "Sass",
-  "GraphQL",
-  "Redux",
-  "Firebase",
-  "AWS",
-  "Docker",
-  "Kubernetes"
-];
-
-function TechMultiSelect({ value, onChange }: { value: string[]; onChange: (val: string[]) => void }) {
-  const [input, setInput] = useState("");
-  const [showOptions, setShowOptions] = useState(false);
-  const filtered = TECHNOLOGIES.filter(
-    (tech) => tech.toLowerCase().includes(input.toLowerCase()) && !value.includes(tech)
-  );
-  const addTech = (tech: string) => { if (tech.trim()) { onChange([...value, tech.trim()]); setInput(""); setShowOptions(false); } };
-  const removeTech = (tech: string) => { onChange(value.filter((t) => t !== tech)); };
-  return (
-    <div className="relative">
-      <div className="flex flex-wrap gap-2 mb-2">
-        {value.map((tech) => (
-          <span key={tech} className="bg-emerald-50 text-emerald-700 px-3 py-1.5 rounded-full flex items-center text-sm font-medium border border-emerald-200">
-            {tech}
-            <button type="button" className="ml-2 text-emerald-600 hover:text-red-600 transition-colors" onClick={() => removeTech(tech)}>×</button>
-          </span>
-        ))}
-      </div>
-      <Input
-        placeholder="Type to add or select technologies..."
-        value={input}
-        onChange={(e) => { setInput(e.target.value); setShowOptions(true); }}
-        onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addTech(input); } }}
-        onFocus={() => setShowOptions(true)}
-        onBlur={() => setTimeout(() => setShowOptions(false), 100)}
-        className="border-gray-300 focus:border-emerald-500 focus:ring-emerald-500"
-      />
-      {showOptions && filtered.length > 0 && (
-        <ul className="absolute z-10 bg-white border border-gray-200 w-full mt-1 rounded-lg shadow-lg max-h-40 overflow-auto">
-          {filtered.map((tech) => (
-            <li key={tech} className="px-3 py-2 hover:bg-emerald-50 cursor-pointer transition-colors" onMouseDown={() => addTech(tech)}>{tech}</li>
-          ))}
-        </ul>
-      )}
-    </div>
-  );
-}
-
-type DomainMultiSelectProps = {
-  value: string[];
-  onChange: (val: string[]) => void;
-};
-
-const DOMAINS = [
-  "Web Development",
-  "Artificial Intelligence",
-  "Deep Learning",
-  "Machine Learning",
-  "Cyber Security",
-  "Mobile Development",
-  "Data Science",
-  "Blockchain",
-  "IoT",
-  "Cloud Computing"
-]
-
-function DomainMultiSelect({ value, onChange }: DomainMultiSelectProps) {
-  const [input, setInput] = useState("");
-  const [showOptions, setShowOptions] = useState(false);
-  const filtered = DOMAINS.filter(
-    (domain) => domain.toLowerCase().includes(input.toLowerCase()) && !value.includes(domain)
-  );
-  const addDomain = (domain: string) => { if (domain.trim()) { onChange([...value, domain.trim()]); setInput(""); setShowOptions(false); } };
-  const removeDomain = (domain: string) => { onChange(value.filter((d) => d !== domain)); };
-  return (
-    <div className="relative">
-      <div className="flex flex-wrap gap-2 mb-2">
-        {value.map((domain) => (
-          <span key={domain} className="bg-blue-50 text-blue-700 px-3 py-1.5 rounded-full flex items-center text-sm font-medium border border-blue-200">
-            {domain}
-            <button type="button" className="ml-2 text-blue-600 hover:text-red-600 transition-colors" onClick={() => removeDomain(domain)}>×</button>
-          </span>
-        ))}
-      </div>
-      <Input
-        placeholder="Type to add or select domains..."
-        value={input}
-        onChange={(e) => { setInput(e.target.value); setShowOptions(true); }}
-        onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addDomain(input); } }}
-        onFocus={() => setShowOptions(true)}
-        onBlur={() => setTimeout(() => setShowOptions(false), 100)}
-        className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-      />
-      {showOptions && filtered.length > 0 && (
-        <ul className="absolute z-10 bg-white border border-gray-200 w-full mt-1 rounded-lg shadow-lg max-h-40 overflow-auto">
-          {filtered.map((domain) => (
-            <li key={domain} className="px-3 py-2 hover:bg-blue-50 cursor-pointer transition-colors" onMouseDown={() => addDomain(domain)}>{domain}</li>
-          ))}
-        </ul>
-      )}
-    </div>
-  );
-}
 
 export const CreateProjectForm = () => {
   const { createProject, isPending } = useCreateProject();
@@ -188,6 +63,22 @@ export const CreateProjectForm = () => {
       demoURL: "",
     },
   });
+
+  const techSelectProps = {
+    options: TECHNOLOGIES,
+    placeholder: "Type to add or select technologies...",
+    chipColor: "bg-emerald-50",
+    chipTextColor: "text-emerald-700",
+    borderColor: "border-gray-300 focus:border-emerald-500",
+  };
+
+  const domainSelectProps = {
+    options: DOMAINS,
+    placeholder: "Type to add or select domains...",
+    chipColor: "bg-blue-50",
+    chipTextColor: "text-blue-700",
+    borderColor: "border-gray-300 focus:border-blue-500",
+  };
 
   // const status = form.watch("status");
   const contributors = form.watch("contributors") || [];
@@ -352,7 +243,11 @@ export const CreateProjectForm = () => {
                         Domain <span className="text-red-500">*</span>
                       </FormLabel>
                       <FormControl>
-                        <DomainMultiSelect value={field.value} onChange={field.onChange} />
+                        <MultiSelect 
+                      value={field.value} 
+                      onChange={field.onChange} 
+                      {...domainSelectProps}
+                    />
                       </FormControl>
                       <p className="text-sm text-gray-500 mt-1">
                         Select the primary domain(s) your project belongs to.
@@ -373,7 +268,11 @@ export const CreateProjectForm = () => {
                         Technology Stack <span className="text-red-500">*</span>
                       </FormLabel>
                       <FormControl>
-                        <TechMultiSelect value={field.value} onChange={field.onChange} />
+                        <MultiSelect 
+                      value={field.value} 
+                      onChange={field.onChange} 
+                      {...techSelectProps}
+                    />
                       </FormControl>
                       <p className="text-sm text-gray-500 mt-1">
                         Choose the technologies, frameworks, and tools used in your project.
