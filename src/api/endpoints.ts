@@ -7,6 +7,7 @@ export const ENDPOINTS = {
     GOOGLE: `${BASE_API}/auth/google`,
     LOGOUT: `${BASE_API}/auth/logout`,
     REFRESH: `${BASE_API}/auth/refresh`, 
+    CHECK_USERNAME: `${BASE_API}/auth/check-username`
   },
   USER: {
     ME: `${BASE_API}/user`, // Endpoint to get the current user's details

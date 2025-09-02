@@ -8,7 +8,7 @@ import { ENDPOINTS } from "@/api/endpoints";
 
 type SignupData = { name: string; email: string; password: string };
 type LoginData  = { email: string; password: string };
-type GoogleData = { idToken: string };
+type GoogleData = { idToken: string | undefined };
 
 // --- Signup --- //
 export const signupUser = async (data: SignupData): Promise<any> => {
@@ -72,8 +72,14 @@ export const useLoginUser = () => {
   return { login, isPending, isError, isSuccess };
 };
 
+// Check username availability
+export const checkUsername = async (username: string): Promise<{ available: boolean }> => {
+  const response = await axios.post(ENDPOINTS.AUTH.CHECK_USERNAME, { username });
+  return response.data.data;
+};
+
 // --- Google Login --- //
-export const googleLoginUser = async (data: GoogleData) => {
+export const googleLoginUser = async (data: GoogleData & { username?: string }) => {
   const response = await axios.post(ENDPOINTS.AUTH.GOOGLE, data, {
     withCredentials: true, // Set cookies (refresh token)
   });
@@ -84,22 +90,26 @@ export const useGoogleLogin = () => {
   const setAccessToken = useAuthStore((state) => state.setAccessToken);
   const navigate = useNavigate();
 
-  const { mutateAsync: googleLogin, isPending, isError, isSuccess } = useMutation({
+  const { mutateAsync: googleLogin, isPending } = useMutation({
     mutationFn: googleLoginUser,
     onSuccess: (data) => {
       setAccessToken(data.data.accessToken);
-      toast.success("Google login successful", {
-        description: "Welcome to PROjectVerse!",
-      });
+      toast.success("Successfully logged in");
       navigate("/profile");
     },
     onError: (error: any) => {
-      const errMsg = error?.response?.data?.message || "Google auth failed.";
-      toast.error("Google Login Error", { description: errMsg });
+      // Let the component handle specific error cases
+      throw error;
     },
   });
 
-  return { googleLogin, isPending, isError, isSuccess };
+  return { googleLogin, isPending };
+};
+
+export const useCheckUsername = () => {
+  return useMutation({
+    mutationFn: checkUsername,
+  });
 };
 
 // --- Logout --- //

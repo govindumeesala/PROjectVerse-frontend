@@ -2,43 +2,47 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Eye, EyeOff } from "lucide-react";
-import { useSignupUser, useCheckUsername } from "@/api/authApi";
+import { useCheckUsername } from "@/api/authApi";
 import { debounce } from "lodash";
 import { UsernameInput } from "@/components/UsernameInput";
 
-const signupSchema = z.object({
-  name: z.string().min(1, "Name is required"),
-  username: z
-    .string()
+const completeSignupSchema = z.object({
+  username: z.string()
     .min(3, "Username must be at least 3 characters")
     .max(30, "Username must be less than 30 characters")
     .regex(/^[a-zA-Z0-9_]+$/, "Username can only contain letters, numbers and underscore"),
+  name: z.string().min(1, "Name is required"),
   email: z.string().email("Invalid email"),
-  password: z
-    .string()
-    .min(8, "Password must be at least 8 characters")
-    .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
-    .regex(/[a-z]/, "Password must contain at least one lowercase letter")
-    .regex(/[0-9]/, "Password must contain at least one number")
-    .regex(/[^A-Za-z0-9]/, "Password must contain at least one special character"),
 });
 
-export const SignupForm = () => {
-  const { signup, isPending } = useSignupUser();
+type CompleteSignupFormProps = {
+  initialData: {
+    name: string;
+    email: string;
+    idToken?: string | undefined;
+  };
+  onSubmit: (data: z.infer<typeof completeSignupSchema>) => void;
+  isLoading?: boolean;
+};
+
+export const CompleteSignupForm = ({ initialData, onSubmit, isLoading }: CompleteSignupFormProps) => {
   const { mutateAsync: checkUsername } = useCheckUsername();
-  const [showPassword, setShowPassword] = useState(false);
+  
+  const form = useForm<z.infer<typeof completeSignupSchema>>({
+    resolver: zodResolver(completeSignupSchema),
+    defaultValues: {
+      username: "",
+      name: initialData.name,
+      email: initialData.email,
+    },
+  });
+
   const [isCheckingUsername, setIsCheckingUsername] = useState(false);
   const [isUsernameAvailable, setIsUsernameAvailable] = useState(false);
   const [wasUsernameChecked, setWasUsernameChecked] = useState(false);
-
-  const form = useForm({
-    resolver: zodResolver(signupSchema),
-    defaultValues: { name: "", username: "", email: "", password: "" },
-  });
 
   // Debounced username check
   const checkUsernameAvailability = debounce(async (username: string) => {
@@ -64,36 +68,33 @@ export const SignupForm = () => {
     }
   }, 500);
 
-  const onSubmit = (data: any) => {
-    signup(data);
+  const handleSubmit = async (data: z.infer<typeof completeSignupSchema>) => {
+    if (!isUsernameAvailable) {
+      form.setError("username", {
+        type: "manual",
+        message: "Please choose an available username"
+      });
+      return;
+    }
+
+    try {
+      await onSubmit(data);
+    } catch (error) {
+      console.error("Error completing signup:", error);
+      // Let the parent component handle the error
+    }
   };
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5 p-6 rounded-lg shadow-lg border bg-white">
-        {/* Name Field */}
-        <FormField
-          control={form.control}
-          name="name"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className="font-medium">Name</FormLabel>
-              <FormControl>
-                <Input placeholder="Your name" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        {/* Username Field */}
+      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
         <FormField
           control={form.control}
           name="username"
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="font-medium">
-                Username
+              <FormLabel>
+                Choose a Username
                 {wasUsernameChecked && isUsernameAvailable && (
                   <span className="ml-2 text-sm text-green-600">Available!</span>
                 )}
@@ -117,57 +118,40 @@ export const SignupForm = () => {
           )}
         />
 
-        {/* Email Field */}
+        <FormField
+          control={form.control}
+          name="name"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Name</FormLabel>
+              <FormControl>
+                <Input {...field} disabled />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
         <FormField
           control={form.control}
           name="email"
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="font-medium">Email</FormLabel>
+              <FormLabel>Email</FormLabel>
               <FormControl>
-                <Input placeholder="you@example.com" {...field} />
+                <Input {...field} disabled />
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
 
-        {/* Password Field with Eye Toggle */}
-        <FormField
-          control={form.control}
-          name="password"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className="font-medium">Password</FormLabel>
-              <FormControl>
-                <div className="relative">
-                  <Input
-                    type={showPassword ? "text" : "password"}
-                    placeholder="********"
-                    {...field}
-                    className="pr-10"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword((prev) => !prev)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
-                  >
-                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                  </button>
-                </div>
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        {/* Submit Button */}
         <Button
           type="submit"
-          disabled={isPending}
-          className="w-full bg-blue-900 hover:bg-blue-800 transition-colors"
+          className="w-full bg-blue-900 hover:bg-blue-800"
+          disabled={isLoading}
         >
-          {isPending ? "Signing Up..." : "Sign Up"}
+          {isLoading ? "Completing Signup..." : "Complete Signup"}
         </Button>
       </form>
     </Form>

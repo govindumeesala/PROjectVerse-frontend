@@ -9,17 +9,17 @@ import { useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
 
 const loginSchema = z.object({
-  email: z.string().email("Invalid email"),
+  emailOrUsername: z.string().min(1, "Email or username is required"),
   password: z.string().min(1, "Password is required"),
 });
 
 export const LoginForm = () => {
   const { login, isPending } = useLoginUser();
-  const [showPassword, setShowPassword] = useState(false)
+  const [showPassword, setShowPassword] = useState(false);
 
   const form = useForm({
     resolver: zodResolver(loginSchema),
-    defaultValues: { email: "", password: "" },
+    defaultValues: { emailOrUsername: "", password: "" },
   });
 
   const onSubmit = (data: any) => {
@@ -31,12 +31,12 @@ export const LoginForm = () => {
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
         <FormField
           control={form.control}
-          name="email"
+          name="emailOrUsername"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Email</FormLabel>
+              <FormLabel>Email or Username</FormLabel>
               <FormControl>
-                <Input placeholder="you@example.com" {...field} />
+                <Input placeholder="Enter email or username" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>

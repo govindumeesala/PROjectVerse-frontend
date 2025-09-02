@@ -67,7 +67,11 @@ Collaborator avatars → mini preview of who’s inside the project (like GitHub
   3. collaborations open view - p0 
 1. Add social media links to profile header - p0 - done
 2. update navbar with profile pic and first name - p1 
-3. update the donut in stats component - p0
+3. update the donut in stats component - p3
+4. add username in user db and project db - p0 - in progress
+  1. even for singup - calling backend immediately
+  2. update ui for completesignup with google
+  3. review changes for username 
 
 ## Projects
 2. A project card with like,comment,share  on bottom projectname,description,techStack,domain,githubURL photo if present on bottom.
