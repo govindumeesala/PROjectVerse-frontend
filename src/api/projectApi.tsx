@@ -188,3 +188,15 @@ export const requestToJoinProject = async (projectId: string) => {
   const res = await api.post(ENDPOINTS.PROJECT.REQUEST_TO_JOIN(projectId));
   return res.data;
 };
+
+export const checkProjectTitle = async (title: string): Promise<{ available: boolean }> => {
+  const response = await api.post(ENDPOINTS.PROJECT.CHECK_TITLE, { title });
+  return response.data;
+};
+
+
+export const useCheckProjectTitle = () => {
+  return useMutation({
+    mutationFn: checkProjectTitle,
+  });
+};

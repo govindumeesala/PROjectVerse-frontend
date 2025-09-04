@@ -13,9 +13,10 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { useCreateProject } from "@/api/projectApi";
+import { useCreateProject, useCheckProjectTitle } from "@/api/projectApi";
 import { useState } from "react";
 import { Checkbox } from "@/components/ui/checkbox";
+import { debounce } from "lodash";
 import {
   Select,
   SelectContent,
@@ -24,9 +25,17 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useGetAllUsers } from "@/api/userApi";
-import { UploadCloud, Globe, Code, Users, Image, Link, GitBranch } from "lucide-react";
+import {
+  UploadCloud,
+  Globe,
+  Code,
+  Users,
+  Image,
+  Link,
+  GitBranch,
+} from "lucide-react";
 import { MultiSelect } from "@/components/ui/MultiSelect";
-import { TECHNOLOGIES,DOMAINS } from "@/constants/projectConstants";
+import { TECHNOLOGIES, DOMAINS } from "@/constants/projectConstants";
 
 const projectSchema = z.object({
   title: z.string().min(1, "Title is required"),
@@ -38,14 +47,21 @@ const projectSchema = z.object({
   contributors: z.array(z.string()).optional(),
   projectPhoto: z.any().optional(), // file handled separately
   githubURL: z.string().url("Enter a valid GitHub URL").optional(),
-  deploymentURL: z.string().url("Enter a valid Deployment URL").optional().or(z.literal("")),
-  demoURL: z.string().url("Enter a valid Demo URL").optional().or(z.literal("")),
+  deploymentURL: z
+    .string()
+    .url("Enter a valid Deployment URL")
+    .optional()
+    .or(z.literal("")),
+  demoURL: z
+    .string()
+    .url("Enter a valid Demo URL")
+    .optional()
+    .or(z.literal("")),
 });
-
 
 export const CreateProjectForm = () => {
   const { createProject, isPending } = useCreateProject();
-  const { users = [], isPending: isUsersLoading } = useGetAllUsers(); 
+  const { users = [], isPending: isUsersLoading } = useGetAllUsers();
 
   const form = useForm({
     resolver: zodResolver(projectSchema),
@@ -63,6 +79,39 @@ export const CreateProjectForm = () => {
       demoURL: "",
     },
   });
+
+  // Inside CreateProjectForm component
+  const { mutateAsync: checkTitle } = useCheckProjectTitle();
+
+  const [isCheckingTitle, setIsCheckingTitle] = useState(false);
+  const [isTitleAvailable, setIsTitleAvailable] = useState(false);
+  const [wasTitleChecked, setWasTitleChecked] = useState(false);
+
+  // Debounced check function
+  const checkTitleAvailability = debounce(async (title: string) => {
+    if (title.length >= 3) {
+      // minimum length to check
+      setIsCheckingTitle(true);
+      try {
+        const result = await checkTitle(title);
+        setIsTitleAvailable(result.available);
+        console.log(result.available);
+        setWasTitleChecked(true);
+        if (!result.available) {
+          form.setError("title", {
+            type: "manual",
+            message: "This project title is already taken",
+          });
+        }
+      } catch (err) {
+        console.error("Error checking project title:", err);
+      } finally {
+        setIsCheckingTitle(false);
+      }
+    } else {
+      setWasTitleChecked(false);
+    }
+  }, 500);
 
   const techSelectProps = {
     options: TECHNOLOGIES,
@@ -89,10 +138,11 @@ export const CreateProjectForm = () => {
   const usersList = Array.isArray(users) ? users : [];
 
   const matchingUsers = usersList
-    .filter((u: any) =>
-      (u.name?.toLowerCase().includes(contributorInput.toLowerCase()) ||
-        u.email?.toLowerCase().includes(contributorInput.toLowerCase())) &&
-      !contributors.includes(u._id)
+    .filter(
+      (u: any) =>
+        (u.name?.toLowerCase().includes(contributorInput.toLowerCase()) ||
+          u.email?.toLowerCase().includes(contributorInput.toLowerCase())) &&
+        !contributors.includes(u._id)
     )
     .slice(0, 5);
 
@@ -102,7 +152,10 @@ export const CreateProjectForm = () => {
   };
 
   const removeContributor = (id: string) => {
-    form.setValue("contributors", contributors.filter((c) => c !== id));
+    form.setValue(
+      "contributors",
+      contributors.filter((c) => c !== id)
+    );
   };
 
   const onSubmit = async (data: any) => {
@@ -113,10 +166,17 @@ export const CreateProjectForm = () => {
         fd.append("title", data.title);
         fd.append("description", data.description);
         fd.append("domain", data.domain);
-        (data.techStack || []).forEach((t: string) => fd.append("techStack[]", t));
+        (data.techStack || []).forEach((t: string) =>
+          fd.append("techStack[]", t)
+        );
         fd.append("status", data.status);
-        fd.append("lookingForContributors", data.lookingForContributors ? "true" : "false");
-        (data.contributors || []).forEach((c: string) => fd.append("contributors[]", c));
+        fd.append(
+          "lookingForContributors",
+          data.lookingForContributors ? "true" : "false"
+        );
+        (data.contributors || []).forEach((c: string) =>
+          fd.append("contributors[]", c)
+        );
         fd.append("projectPhoto", data.projectPhoto);
         if (data.githubURL) fd.append("githubURL", data.githubURL);
         if (data.deploymentURL) fd.append("deploymentURL", data.deploymentURL);
@@ -124,7 +184,13 @@ export const CreateProjectForm = () => {
 
         await createProject(fd);
       } else {
-        // JSON payload (no file)
+        if (!isTitleAvailable) {
+          form.setError("title", {
+            type: "manual",
+            message: "Please choose an available project title",
+          });
+          return;
+        }
         await createProject({
           ...data,
         });
@@ -144,10 +210,16 @@ export const CreateProjectForm = () => {
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Create a new project</h1>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            Create a new project
+          </h1>
           <p className="text-gray-600 text-lg">
-            Projects showcase your work and help you find collaborators. Have a project elsewhere? 
-            <span className="text-blue-600 hover:text-blue-800 cursor-pointer ml-1">Import it here</span>.
+            Projects showcase your work and help you find collaborators. Have a
+            project elsewhere?
+            <span className="text-blue-600 hover:text-blue-800 cursor-pointer ml-1">
+              Import it here
+            </span>
+            .
           </p>
           <p className="text-sm text-gray-500 italic mt-2">
             Required fields are marked with an asterisk (*)
@@ -156,7 +228,6 @@ export const CreateProjectForm = () => {
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-            
             {/* Section 1: General Information */}
             <div className="bg-white rounded-xl border border-gray-200 p-6">
               <div className="flex items-center mb-6">
@@ -165,7 +236,7 @@ export const CreateProjectForm = () => {
                 </div>
                 <h2 className="text-xl font-semibold text-gray-900">General</h2>
               </div>
-              
+
               <div className="space-y-6">
                 {/* Project Title */}
                 <FormField
@@ -175,17 +246,34 @@ export const CreateProjectForm = () => {
                     <FormItem>
                       <FormLabel className="text-sm font-medium text-gray-700">
                         Project title<span className="text-red-500">*</span>
+                        {wasTitleChecked && isTitleAvailable && (
+                          <span className="ml-2 text-sm text-green-600">
+                            Available!
+                          </span>
+                        )}
                       </FormLabel>
+
                       <FormControl>
-                        <Input 
-                          placeholder="Enter your project title" 
+                        <Input
+                          placeholder="Enter your project title"
                           {...field}
                           className="border-gray-300 focus:border-blue-500 focus:ring-blue-500 h-11"
+                          onChange={(e) => {
+                            field.onChange(e); // update form state
+                            form.clearErrors("title"); // clear previous error
+                            setWasTitleChecked(false); // reset
+                            checkTitleAvailability(e.target.value); // debounce API call
+                          }}
                         />
                       </FormControl>
                       <p className="text-sm text-gray-500 mt-1">
-                        Great project names are short and memorable. How about <span className="text-emerald-600 font-medium">awesome-project-verse</span>?
+                        Great project names are short and memorable. How about{" "}
+                        <span className="text-emerald-600 font-medium">
+                          awesome-project-verse
+                        </span>
+                        ?
                       </p>
+
                       <FormMessage />
                     </FormItem>
                   )}
@@ -201,7 +289,7 @@ export const CreateProjectForm = () => {
                         Description <span className="text-red-500">*</span>
                       </FormLabel>
                       <FormControl>
-                        <Textarea 
+                        <Textarea
                           placeholder="Describe your project, its goals, and what makes it unique..."
                           {...field}
                           className="border-gray-300 focus:border-blue-500 focus:ring-blue-500 min-h-[100px] resize-none"
@@ -209,7 +297,8 @@ export const CreateProjectForm = () => {
                       </FormControl>
                       <div className="flex justify-between items-center mt-1">
                         <p className="text-sm text-gray-500">
-                          Descriptions help others understand your project better.
+                          Descriptions help others understand your project
+                          better.
                         </p>
                         <span className="text-sm text-gray-400">
                           {field.value?.length || 0}/500 characters
@@ -226,11 +315,15 @@ export const CreateProjectForm = () => {
             <div className="bg-white rounded-xl border border-gray-200 p-6">
               <div className="flex items-center mb-6">
                 <div className="w-8 h-8 bg-emerald-100 rounded-full flex items-center justify-center mr-3">
-                  <span className="text-emerald-600 font-semibold text-sm">2</span>
+                  <span className="text-emerald-600 font-semibold text-sm">
+                    2
+                  </span>
                 </div>
-                <h2 className="text-xl font-semibold text-gray-900">Domain & Technology</h2>
+                <h2 className="text-xl font-semibold text-gray-900">
+                  Domain & Technology
+                </h2>
               </div>
-              
+
               <div className="space-y-6">
                 {/* Domain */}
                 <FormField
@@ -243,11 +336,11 @@ export const CreateProjectForm = () => {
                         Domain <span className="text-red-500">*</span>
                       </FormLabel>
                       <FormControl>
-                        <MultiSelect 
-                      value={field.value} 
-                      onChange={field.onChange} 
-                      {...domainSelectProps}
-                    />
+                        <MultiSelect
+                          value={field.value}
+                          onChange={field.onChange}
+                          {...domainSelectProps}
+                        />
                       </FormControl>
                       <p className="text-sm text-gray-500 mt-1">
                         Select the primary domain(s) your project belongs to.
@@ -268,14 +361,15 @@ export const CreateProjectForm = () => {
                         Technology Stack <span className="text-red-500">*</span>
                       </FormLabel>
                       <FormControl>
-                        <MultiSelect 
-                      value={field.value} 
-                      onChange={field.onChange} 
-                      {...techSelectProps}
-                    />
+                        <MultiSelect
+                          value={field.value}
+                          onChange={field.onChange}
+                          {...techSelectProps}
+                        />
                       </FormControl>
                       <p className="text-sm text-gray-500 mt-1">
-                        Choose the technologies, frameworks, and tools used in your project.
+                        Choose the technologies, frameworks, and tools used in
+                        your project.
                       </p>
                       <FormMessage />
                     </FormItem>
@@ -288,11 +382,15 @@ export const CreateProjectForm = () => {
             <div className="bg-white rounded-xl border border-gray-200 p-6">
               <div className="flex items-center mb-6">
                 <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center mr-3">
-                  <span className="text-purple-600 font-semibold text-sm">3</span>
+                  <span className="text-purple-600 font-semibold text-sm">
+                    3
+                  </span>
                 </div>
-                <h2 className="text-xl font-semibold text-gray-900">Status & Collaboration</h2>
+                <h2 className="text-xl font-semibold text-gray-900">
+                  Status & Collaboration
+                </h2>
               </div>
-              
+
               <div className="space-y-6">
                 {/* Status */}
                 <FormField
@@ -303,15 +401,22 @@ export const CreateProjectForm = () => {
                       <FormLabel className="text-sm font-medium text-gray-700">
                         Project Status <span className="text-red-500">*</span>
                       </FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <Select
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                      >
                         <FormControl>
                           <SelectTrigger className="border-gray-300 focus:border-purple-500 focus:ring-purple-500 h-11">
                             <SelectValue placeholder="Select project status" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="ongoing">🔄 Ongoing - Still in development</SelectItem>
-                          <SelectItem value="completed">✅ Completed - Ready for use</SelectItem>
+                          <SelectItem value="ongoing">
+                            🔄 Ongoing - Still in development
+                          </SelectItem>
+                          <SelectItem value="completed">
+                            ✅ Completed - Ready for use
+                          </SelectItem>
                         </SelectContent>
                       </Select>
                       <p className="text-sm text-gray-500 mt-1">
@@ -330,8 +435,8 @@ export const CreateProjectForm = () => {
                     render={({ field }) => (
                       <FormItem className="flex items-start space-x-3">
                         <FormControl>
-                          <Checkbox 
-                            checked={field.value} 
+                          <Checkbox
+                            checked={field.value}
                             onCheckedChange={field.onChange}
                             className="mt-1"
                           />
@@ -341,7 +446,8 @@ export const CreateProjectForm = () => {
                             Looking for contributors
                           </FormLabel>
                           <p className="text-sm text-gray-500">
-                            Check this if you're open to working with other developers on this project.
+                            Check this if you're open to working with other
+                            developers on this project.
                           </p>
                         </div>
                       </FormItem>
@@ -359,11 +465,14 @@ export const CreateProjectForm = () => {
                     {(form.watch("contributors") || []).map((id: string) => {
                       const user = usersList.find((u: any) => u._id === id);
                       return (
-                        <span key={id} className="bg-purple-50 text-purple-700 px-3 py-1.5 rounded-full flex items-center text-sm font-medium border border-purple-200">
+                        <span
+                          key={id}
+                          className="bg-purple-50 text-purple-700 px-3 py-1.5 rounded-full flex items-center text-sm font-medium border border-purple-200"
+                        >
                           {user?.name || user?.email}
-                          <button 
-                            type="button" 
-                            className="ml-2 text-purple-600 hover:text-red-600 transition-colors" 
+                          <button
+                            type="button"
+                            className="ml-2 text-purple-600 hover:text-red-600 transition-colors"
                             onClick={() => removeContributor(id)}
                           >
                             ×
@@ -374,11 +483,17 @@ export const CreateProjectForm = () => {
                   </div>
 
                   <Input
-                    placeholder={isUsersLoading ? "Loading users..." : "Search contributors by name or email..."}
+                    placeholder={
+                      isUsersLoading
+                        ? "Loading users..."
+                        : "Search contributors by name or email..."
+                    }
                     value={contributorInput}
                     onChange={(e) => setContributorInput(e.target.value)}
                     onFocus={() => setShowContributorOptions(true)}
-                    onBlur={() => setTimeout(() => setShowContributorOptions(false), 120)}
+                    onBlur={() =>
+                      setTimeout(() => setShowContributorOptions(false), 120)
+                    }
                     disabled={isUsersLoading || usersList.length === 0}
                     className="border-gray-300 focus:border-purple-500 focus:ring-purple-500 h-11"
                   />
@@ -386,13 +501,17 @@ export const CreateProjectForm = () => {
                   {showContributorOptions && matchingUsers.length > 0 && (
                     <ul className="border border-gray-200 rounded-lg bg-white shadow-lg max-h-40 overflow-auto mt-2">
                       {matchingUsers.map((user: any) => (
-                        <li 
-                          key={user._id} 
-                          className="p-3 hover:bg-purple-50 cursor-pointer transition-colors border-b border-gray-100 last:border-b-0" 
+                        <li
+                          key={user._id}
+                          className="p-3 hover:bg-purple-50 cursor-pointer transition-colors border-b border-gray-100 last:border-b-0"
                           onMouseDown={() => addContributor(user._id)}
                         >
-                          <div className="font-medium text-gray-900">{user.name}</div>
-                          <div className="text-sm text-gray-500">{user.email}</div>
+                          <div className="font-medium text-gray-900">
+                            {user.name}
+                          </div>
+                          <div className="text-sm text-gray-500">
+                            {user.email}
+                          </div>
                         </li>
                       ))}
                     </ul>
@@ -408,11 +527,15 @@ export const CreateProjectForm = () => {
             <div className="bg-white rounded-xl border border-gray-200 p-6">
               <div className="flex items-center mb-6">
                 <div className="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center mr-3">
-                  <span className="text-orange-600 font-semibold text-sm">4</span>
+                  <span className="text-orange-600 font-semibold text-sm">
+                    4
+                  </span>
                 </div>
-                <h2 className="text-xl font-semibold text-gray-900">Media & Links</h2>
+                <h2 className="text-xl font-semibold text-gray-900">
+                  Media & Links
+                </h2>
               </div>
-              
+
               <div className="space-y-6">
                 {/* Project Photo */}
                 <FormField
@@ -425,20 +548,28 @@ export const CreateProjectForm = () => {
                         Project Photo
                       </FormLabel>
                       <FormControl>
-                        <label 
-                          htmlFor="project-photo-upload" 
+                        <label
+                          htmlFor="project-photo-upload"
                           className="flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-lg cursor-pointer p-8 bg-gray-50 hover:bg-orange-50 transition-colors group"
                         >
                           <UploadCloud className="w-12 h-12 mb-3 text-orange-400 group-hover:text-orange-500 transition-colors" />
-                          <span className="font-medium text-gray-700 mb-1">Upload Project Photo</span>
-                          <span className="text-sm text-gray-500 mb-2">PNG, JPG, JPEG up to 5MB</span>
-                          <span className="text-xs text-orange-600">Click to browse or drag and drop</span>
-                          <input 
-                            id="project-photo-upload" 
-                            type="file" 
-                            accept="image/*" 
-                            className="hidden" 
-                            onChange={(e) => field.onChange(e.target.files?.[0])} 
+                          <span className="font-medium text-gray-700 mb-1">
+                            Upload Project Photo
+                          </span>
+                          <span className="text-sm text-gray-500 mb-2">
+                            PNG, JPG, JPEG up to 5MB
+                          </span>
+                          <span className="text-xs text-orange-600">
+                            Click to browse or drag and drop
+                          </span>
+                          <input
+                            id="project-photo-upload"
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            onChange={(e) =>
+                              field.onChange(e.target.files?.[0])
+                            }
                           />
                           {field.value && typeof field.value !== "string" && (
                             <span className="mt-2 text-sm text-emerald-600 font-medium">
@@ -448,7 +579,8 @@ export const CreateProjectForm = () => {
                         </label>
                       </FormControl>
                       <p className="text-sm text-gray-500 mt-1">
-                        A great project photo helps attract attention and collaborators.
+                        A great project photo helps attract attention and
+                        collaborators.
                       </p>
                       <FormMessage />
                     </FormItem>
@@ -464,11 +596,12 @@ export const CreateProjectForm = () => {
                       <FormItem>
                         <FormLabel className="text-sm font-medium text-gray-700 flex items-center">
                           <GitBranch className="w-4 h-4 mr-2 text-gray-600" />
-                          GitHub Repository<span className="text-red-500">*</span>
+                          GitHub Repository
+                          <span className="text-red-500">*</span>
                         </FormLabel>
                         <FormControl>
-                          <Input 
-                            placeholder="https://github.com/username/repository" 
+                          <Input
+                            placeholder="https://github.com/username/repository"
                             {...field}
                             className="border-gray-300 focus:border-blue-500 focus:ring-blue-500 h-11"
                           />
@@ -491,8 +624,8 @@ export const CreateProjectForm = () => {
                           Live Demo URL
                         </FormLabel>
                         <FormControl>
-                          <Input 
-                            placeholder="https://your-project.vercel.app" 
+                          <Input
+                            placeholder="https://your-project.vercel.app"
                             {...field}
                             className="border-gray-300 focus:border-blue-500 focus:ring-blue-500 h-11"
                           />
@@ -515,8 +648,8 @@ export const CreateProjectForm = () => {
                           Additional Demo URL
                         </FormLabel>
                         <FormControl>
-                          <Input 
-                            placeholder="https://demo.example.com" 
+                          <Input
+                            placeholder="https://demo.example.com"
                             {...field}
                             className="border-gray-300 focus:border-blue-500 focus:ring-blue-500 h-11"
                           />
@@ -534,9 +667,9 @@ export const CreateProjectForm = () => {
 
             {/* Submit Button */}
             <div className="flex justify-end">
-              <Button 
-                type="submit" 
-                disabled={isPending} 
+              <Button
+                type="submit"
+                disabled={isPending}
                 className="bg-emerald-600 hover:bg-emerald-700 text-white px-8 py-3 h-12 text-base font-medium rounded-lg transition-colors shadow-lg hover:shadow-xl"
               >
                 {isPending ? "Creating project..." : "Create project"}
@@ -550,4 +683,3 @@ export const CreateProjectForm = () => {
 };
 
 export default CreateProjectForm;
-

@@ -21,6 +21,7 @@ export const ENDPOINTS = {
     LIST: `${BASE_API}/project/list`,
     MY_PROJECTS: `${BASE_API}/project/my-projects`,
     CONTRIBUTED: `${BASE_API}/project/contributed`,
+    CHECK_TITLE: `${BASE_API}/project/check-title`,
 
     // Add more project endpoints here
     PROJECT_FEED: `${BASE_API}/project/feed`,
