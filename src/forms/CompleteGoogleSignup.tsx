@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useCheckUsername } from "@/api/authApi";
 import { debounce } from "lodash";
-import { UsernameInput } from "@/components/UsernameInput";
+import { UsernameInput } from "@/components/signup/UsernameInput";
 
 const completeSignupSchema = z.object({
   username: z.string()
@@ -28,7 +28,7 @@ type CompleteSignupFormProps = {
   isLoading?: boolean;
 };
 
-export const CompleteSignupForm = ({ initialData, onSubmit, isLoading }: CompleteSignupFormProps) => {
+export const CompleteGoogleSignup = ({ initialData, onSubmit, isLoading }: CompleteSignupFormProps) => {
   const { mutateAsync: checkUsername } = useCheckUsername();
   
   const form = useForm<z.infer<typeof completeSignupSchema>>({

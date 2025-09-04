@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Eye, EyeOff } from "lucide-react";
 import { useSignupUser, useCheckUsername } from "@/api/authApi";
 import { debounce } from "lodash";
-import { UsernameInput } from "@/components/UsernameInput";
+import { UsernameInput } from "@/components/signup/UsernameInput";
 
 const signupSchema = z.object({
   name: z.string().min(1, "Name is required"),

@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { SignupForm } from "@/forms/SignupForm";
 import { LoginForm } from "@/forms/LoginForm";
-import { CompleteSignupForm } from "@/forms/CompleteSignupForm";
-import GoogleLoginButton from "@/components/GoogleLoginButton";
+import { CompleteGoogleSignup } from "@/forms/CompleteGoogleSignup";
+import GoogleLoginButton from "@/components/signup/GoogleLoginButton";
 import { useGoogleLogin } from "@/api/authApi";
 import { z } from "zod";
 import { toast } from "sonner";
@@ -44,7 +44,7 @@ const LoginSignupPage = () => {
       case "complete-signup":
         if (!tempUserData) return null;
         return (
-          <CompleteSignupForm
+          <CompleteGoogleSignup
             initialData={tempUserData}
             onSubmit={handleGoogleSignupComplete}
           />
