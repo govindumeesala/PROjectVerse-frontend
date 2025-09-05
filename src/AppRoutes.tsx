@@ -7,6 +7,7 @@ import ProfilePage from "@/pages/ProfilePage";
 import CollabPage from "@/pages/CollabPage";
 import LoginSignupPage from "@/pages/LoginSignupPage";
 import { useRefreshAccessToken } from "@/api/authApi";
+import ProjectPage from "./pages/ProjectPage";
 
 const AppRoutes = () => {
     const { refresh: refreshAccessToken, isPending } = useRefreshAccessToken();
@@ -47,6 +48,12 @@ const AppRoutes = () => {
     <Route path="/collab" element={
       <Layout>
         <CollabPage />
+      </Layout>
+    }  />
+
+    <Route path="/:username/:projectTitle" element={
+      <Layout>
+        <ProjectPage />
       </Layout>
     }  />
   </Routes>
