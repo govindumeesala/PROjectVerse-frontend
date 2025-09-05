@@ -78,8 +78,11 @@ const ProfileHeader: React.FC<Props> = () => {
         <div className="mt-4 w-full md:mt-0 md:ml-4 flex-1 min-w-0 text-center md:text-left">
           {/* Name and email */}
           <h2 className="text-2xl md:text-3xl font-semibold break-words">
-            {user?.name || "Unnamed"}
+            {user?.username || "Unnamed"}
           </h2>
+          <p className="text-base text-gray-600 mt-1 break-words">
+            {user?.name || "No name provided"}
+          </p>
           <p className="text-base text-gray-600 mt-1 break-words">
             {user?.email || "No email provided"}
           </p>

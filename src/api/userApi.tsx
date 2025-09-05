@@ -21,6 +21,7 @@ type User = {
     // twitter?: string;
     // website?: string;
   };
+  username: string; // ensure this exists
 };
 
 // fetch my profile (protected)

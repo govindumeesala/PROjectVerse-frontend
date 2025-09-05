@@ -4,6 +4,8 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { useAuthStore } from "@/store/useAuthStore";
+import { getMyProfile } from "@/api/userApi";
+import { useUserStore } from "@/store/useUserStore";
 import { ENDPOINTS } from "@/api/endpoints";
 
 type SignupData = { name: string; email: string; password: string };
@@ -20,12 +22,21 @@ export const signupUser = async (data: SignupData): Promise<any> => {
 
 export const useSignupUser = () => {
   const setAccessToken = useAuthStore((state) => state.setAccessToken);
+  const setUser = useUserStore((state) => state.setUser);
   const navigate = useNavigate();
 
   const { mutateAsync: signup, isPending, isError, isSuccess } = useMutation({
     mutationFn: signupUser,
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
       setAccessToken(data.data.accessToken);
+
+      try {
+        const profile = await getMyProfile();
+        setUser(profile);
+      } catch (err) {
+        console.error("Failed to fetch profile after signup", err);
+      }
+
       toast.success("Successfully registered", {
         description: "Welcome to PROjectVerse!",
       });
@@ -51,13 +62,22 @@ export const loginUser = async (data: LoginData) => {
 
 export const useLoginUser = () => {
   const setAccessToken = useAuthStore((state) => state.setAccessToken);
+  const setUser = useUserStore((state) => state.setUser);
   const navigate = useNavigate();
 
   const { mutateAsync: login, isPending, isError, isSuccess } = useMutation({
     mutationFn: loginUser,
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
       console.log("Login response:", data);
       setAccessToken(data.data.accessToken);
+
+      try {
+        const profile = await getMyProfile();
+        setUser(profile);
+      } catch (err) {
+        console.error("Failed to fetch profile after login", err);
+      }
+
       toast.success("Successfully logged in", {
         description: "Welcome back!",
       });
@@ -88,12 +108,21 @@ export const googleLoginUser = async (data: GoogleData & { username?: string }) 
 
 export const useGoogleLogin = () => {
   const setAccessToken = useAuthStore((state) => state.setAccessToken);
+  const setUser = useUserStore((state) => state.setUser);
   const navigate = useNavigate();
 
   const { mutateAsync: googleLogin, isPending } = useMutation({
     mutationFn: googleLoginUser,
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
       setAccessToken(data.data.accessToken);
+
+      try {
+        const profile = await getMyProfile();
+        setUser(profile);
+      } catch (err) {
+        console.error("Failed to fetch profile after google login", err);
+      }
+
       toast.success("Successfully logged in");
       navigate("/profile");
     },
@@ -120,6 +149,7 @@ export const logoutUser = async () => {
 
 export const useLogoutUser = () => {
   const clearAccessToken = useAuthStore((s) => s.clearAccessToken);
+  const clearUser = useUserStore((s) => s.clearUser);
   const queryClient = useQueryClient();
   const navigate = useNavigate();
 
@@ -127,6 +157,7 @@ export const useLogoutUser = () => {
     mutationFn: logoutUser,
     onSuccess: () => {
       clearAccessToken();
+      clearUser();
       queryClient.clear();
       toast.success("Logged out", { description: "Session ended." });
       navigate("/");
@@ -148,11 +179,20 @@ export const refreshAccessToken = async () => {
 
 export const useRefreshAccessToken = () => {
   const setAccessToken = useAuthStore.getState().setAccessToken;
+  const setUser = useUserStore.getState().setUser;
 
   const { mutateAsync: refresh, isPending, isError, isSuccess } = useMutation({
     mutationFn: refreshAccessToken,
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
       const accessToken = data.data.accessToken;
+
+      try {
+        const profile = await getMyProfile();
+        setUser(profile);
+      } catch (err) {
+        console.error("Failed to fetch profile after refresh", err);
+      }
+
       setAccessToken(accessToken);
     },
     onError: (error: any) => {
