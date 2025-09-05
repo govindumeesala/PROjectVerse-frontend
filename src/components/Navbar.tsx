@@ -1,6 +1,6 @@
+import React from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { FaUserCircle } from "react-icons/fa"; // Profile Icon
-import { AiOutlinePlus, AiOutlineMenu } from "react-icons/ai"; // Plus & Menu Icons
+import { AiOutlinePlus, AiOutlineMenu } from "react-icons/ai"; 
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -18,12 +18,43 @@ import {
 } from "@/components/ui/sheet";
 import { Separator } from "./ui/separator";
 import { Button } from "@/components/ui/button";
-import { useAuthStore } from "@/store/useAuthStore";
 import { useLogoutUser } from "@/api/authApi";
+import { useUserStore } from "@/store/useUserStore";
 
-const Navbar = () => {
-  const accessToken = useAuthStore((state) => state.accessToken);
-  const isLoggedIn = !!accessToken;
+// Avatar component
+const Avatar: React.FC<{
+  name?: string | null;
+  username?: string;
+  profilePhoto?: string | null;
+  size?: number;
+}> = ({ name, username, profilePhoto, size = 32 }) => {
+  const initial = (name || username || "").charAt(0).toUpperCase() || "U";
+  if (profilePhoto) {
+    return (
+      <img
+        src={profilePhoto}
+        alt={username || name || "avatar"}
+        width={size}
+        height={size}
+        className="rounded-full object-cover"
+        style={{ width: size, height: size }}
+      />
+    );
+  }
+  return (
+    <div
+      className="flex items-center justify-center rounded-full bg-blue-800 text-white font-semibold"
+      style={{ width: size, height: size }}
+    >
+      {initial}
+    </div>
+  );
+};
+
+const Navbar: React.FC = () => {
+  const user = useUserStore((state) => state.user);
+  console.log("Navbar user:", user);
+  const isLoggedIn = user !== null;
   const { logout, isPending } = useLogoutUser();
   const navigate = useNavigate();
 
@@ -43,38 +74,63 @@ const Navbar = () => {
             </SheetTrigger>
             <SheetContent side="left" className="bg-white shadow-lg p-3 w-[300px]">
               <SheetHeader className="py-2">
-                {isLoggedIn ? (
+                {isLoggedIn && user ? (
                   <div>
-                    <div className="flex items-center gap-2">
-                      <SheetTitle className="text-lg font-semibold">John Doe</SheetTitle>
-                      <FaUserCircle size={25} className="text-blue-800" />
+                    <div className="flex items-center gap-3">
+                      <Avatar
+                        profilePhoto={user.profilePhoto}
+                        name={user.name}
+                        username={user.username}
+                        size={42}
+                      />
+                      <div>
+                        <SheetTitle className="text-lg font-bold text-gray-900">
+                          {user.username}
+                        </SheetTitle>
+                        {user.name && (
+                          <SheetDescription className="text-gray-600">
+                            {user.name}
+                          </SheetDescription>
+                        )}
+                      </div>
                     </div>
                     <Separator className="mt-4 px-2" />
                   </div>
                 ) : (
                   <>
-                    <SheetTitle className="text-lg font-semibold">Welcome to PROjectVerse</SheetTitle>
+                    <SheetTitle className="text-lg font-semibold">
+                      Welcome to PROjectVerse
+                    </SheetTitle>
                     <Separator className="px-2" />
                     <SheetDescription className="text-gray-600">
                       Login to explore and manage projects.
                     </SheetDescription>
-                    <Button onClick={() => navigate("/auth/login")} className="w-full mt-4 bg-blue-800 hover:bg-blue-900 text-white">
-                      Log In
-                    </Button>
-                  </> 
+                  </>
                 )}
               </SheetHeader>
+
               {isLoggedIn && (
-                <div className="mt-0 px-4">
-                  <Link to="/profile" className="w-full text-left text-gray-800">
+                <div className="mt-4 px-4 space-y-3">
+                  <Link to="/profile" className="block text-gray-800 font-medium">
                     Profile
                   </Link>
                   <Button
                     onClick={() => logout()}
-                    className="w-full mt-2 bg-blue-600 hover:bg-red-700 text-white"
+                    className="w-full bg-blue-600 hover:bg-red-700 text-white"
                     disabled={isPending}
                   >
                     {isPending ? "Logging out..." : "Log Out"}
+                  </Button>
+                </div>
+              )}
+
+              {!isLoggedIn && (
+                <div className="mt-4 px-4">
+                  <Button
+                    onClick={() => navigate("/auth/login")}
+                    className="w-full mt-4 bg-blue-800 hover:bg-blue-900 text-white"
+                  >
+                    Log In
                   </Button>
                 </div>
               )}
@@ -82,38 +138,64 @@ const Navbar = () => {
           </Sheet>
         </div>
 
-        {/* Main Navbar for Tablets and Larger Screens */}
+        {/* Desktop Navbar */}
         <div className="hidden md:block">
-          <div className="flex space-x-6 text-lg">
-            {/* Create Project Button (only visible when logged in) */}
+          <div className="flex space-x-6 text-lg items-center">
+            {/* Create Project Button */}
             {isLoggedIn && (
               <Link
                 to="/create-project"
                 className="hidden sm:flex items-center space-x-2 hover:text-cyan-400"
               >
-                <AiOutlinePlus size={24} />
+                <AiOutlinePlus size={22} />
                 <span className="hidden md:inline">Create Project</span>
               </Link>
             )}
 
             {/* Profile / Login Section */}
-            {isLoggedIn ? (
+            {isLoggedIn && user ? (
               <DropdownMenu>
                 <DropdownMenuTrigger>
-                  <FaUserCircle size={26} className="cursor-pointer hover:text-gray-300 transition" />
+                  <div className="flex items-center gap-2 cursor-pointer hover:opacity-90">
+                    <span className="text-white">{user.username}</span>
+                    <Avatar
+                      profilePhoto={user.profilePhoto}
+                      name={user.name}
+                      username={user.username}
+                      size={30}
+                    />
+                  </div>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent className="bg-white shadow-lg rounded-lg p-2 w-30">
-                  <DropdownMenuLabel className="font-semibold text-gray-700">
+                <DropdownMenuContent className="bg-white shadow-lg rounded-lg p-3 w-45">
+                  {/* Header inside dropdown */}
+                  <div className="flex items-center gap-3 px-2">
+                    <Avatar
+                      profilePhoto={user.profilePhoto}
+                      name={user.name}
+                      username={user.username}
+                      size={30}
+                    />
+                    <div>
+                      <div className="font-bold text-gray-900">{user.username}</div>
+                      {user.name && (
+                        <div className="text-sm text-gray-600">{user.name}</div>
+                      )}
+                    </div>
+                  </div>
+
+                  <DropdownMenuSeparator className="border-t border-gray-300 my-3" />
+
+                  <DropdownMenuLabel className="font-medium text-gray-700 cursor-pointer hover:text-blue-800">
                     <Link to="/profile">Profile</Link>
                   </DropdownMenuLabel>
-                  <DropdownMenuSeparator className="border-t border-gray-300 mx-2 my-1 mb-2" />
-                  <div className="flex justify-center">
+
+                  <div className="mt-3">
                     <Button
                       onClick={() => logout()}
                       disabled={isPending}
                       className="bg-blue-800 hover:bg-blue-900 text-white px-4 py-2 rounded-md w-full"
                     >
-                      {isPending ? "Logging out..." : "Log Out" }
+                      {isPending ? "Logging out..." : "Log Out"}
                     </Button>
                   </div>
                 </DropdownMenuContent>
