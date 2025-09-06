@@ -185,10 +185,6 @@ export const unlikeProject = async (projectId: string) => {
   return res.data;
 };
 
-export const requestToJoinProject = async (projectId: string) => {  
-  const res = await api.post(ENDPOINTS.PROJECT.REQUEST_TO_JOIN(projectId));
-  return res.data;
-};
 
 export const checkProjectTitle = async (title: string): Promise<{ available: boolean }> => {
   const response = await api.post(ENDPOINTS.PROJECT.CHECK_TITLE, { title });
@@ -200,4 +196,19 @@ export const useCheckProjectTitle = () => {
   return useMutation({
     mutationFn: checkProjectTitle,
   });
+};
+
+export const getProject = async (username: string, projectTitle: string) => {
+  const response = await api.get(ENDPOINTS.PROJECT.GET(username, projectTitle));
+  return response.data.data;
+};
+
+export const requestToJoin = async (username: string, projectTitle: string) => {
+  const response = await api.post(ENDPOINTS.PROJECT.REQUEST_TO_JOIN(username, projectTitle));
+  return response.data.data;
+};
+
+export const updateProject = async (username: string, projectTitle: string, updates: any) => {
+  const response = await api.put(ENDPOINTS.PROJECT.UPDATE(username, projectTitle), updates);
+  return response.data.data;
 };

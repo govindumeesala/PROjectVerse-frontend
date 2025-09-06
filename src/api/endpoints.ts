@@ -30,7 +30,12 @@ export const ENDPOINTS = {
     LIKE_PROJECT: (id: string) => `${BASE_API}/project/${id}/like`,
     UNLIKE_PROJECT: (id: string) => `${BASE_API}/project/${id}/unlike`,
     COMMENTS: (id: string) => `${BASE_API}/project/${id}/comments`,
-    REQUEST_TO_JOIN: (id: string) => `${BASE_API}/project/${id}/request-join`,
+
+
+    //Single Project related endpoints
+    GET: (username: string, projectTitle: string) => `${BASE_API}/project/${username}/${projectTitle}`,
+    UPDATE: (username: string, projectTitle: string) => `${BASE_API}/project/${username}/${projectTitle}`,
+    REQUEST_TO_JOIN: (username: string, projectTitle: string) => `${BASE_API}/project/${username}/${projectTitle}/join`,
   },
   // Add other resource endpoints as needed
 };

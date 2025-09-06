@@ -12,11 +12,7 @@ import {
   Link2,
 } from "lucide-react";
 import CommentSection from "./CommentSection";
-import {
-  likeProject,
-  unlikeProject,
-  requestToJoinProject,
-} from "@/api/projectApi";
+import { likeProject, unlikeProject } from "@/api/projectApi";
 import { toggleBookmarkApi } from "@/api/userApi";
 import { toast } from "sonner";
 import {
@@ -25,6 +21,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { useNavigate } from "react-router-dom";
 
 export default function ProjectCard({ project, refetch }: any) {
   const [showComments, setShowComments] = useState(false);
@@ -36,6 +33,12 @@ export default function ProjectCard({ project, refetch }: any) {
   const [commentsCount, setCommentsCount] = useState(
     project.commentsCount || 0
   );
+  const navigate = useNavigate();
+
+  // Go to project page normally
+  const handleCardClick = () => {
+    navigate(`/${project.owner.username}/${project.title}`);
+  };
 
   // ❤️ Toggle Like
   const handleLike = async () => {
@@ -78,23 +81,22 @@ export default function ProjectCard({ project, refetch }: any) {
   };
 
   // 🙋 Request to Join
-  const handleRequestJoin = async () => {
-    try {
-      const res = await requestToJoinProject(project._id);
-      if (res.success) toast.success("Request sent successfully!");
-    } catch {
-      toast.error("Failed to send join request");
-    }
+  const handleRequestJoin = () => {
+    navigate(`/${project.owner.username}/${project.title}`, {
+      state: { highlightJoin: true },
+    });
   };
 
   const displayStatus =
     project.status === "ongoing" && project.lookingForContributors
       ? "Looking for collaborators"
       : project.status;
-  console.log(project);
 
   return (
-    <Card className="w-full shadow-lg rounded-2xl border border-slate-200 bg-white overflow-hidden transition-all duration-300 hover:shadow-xl">
+    <Card
+      onClick={handleCardClick}
+      className="w-full shadow-lg rounded-2xl border border-slate-200 bg-white overflow-hidden transition-all duration-300 hover:shadow-xl"
+    >
       <CardHeader className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between p-6">
         <div className="flex items-start gap-4 flex-grow">
           {project.owner?.profilePhoto && (
@@ -271,7 +273,10 @@ export default function ProjectCard({ project, refetch }: any) {
             <Button
               variant="default"
               size="sm"
-              onClick={handleRequestJoin}
+              onClick={(e) => {
+                e.stopPropagation(); // stop card click
+                handleRequestJoin();
+              }}
               className="md:ml-auto w-full md:w-auto bg-blue-600 text-white hover:bg-blue-700 transition-colors"
             >
               Request to Join
