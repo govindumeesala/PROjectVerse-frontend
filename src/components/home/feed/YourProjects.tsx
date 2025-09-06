@@ -1,14 +1,16 @@
 // should not be used in the profile page 
 
 import React from "react";
-import { useGetMyProjects } from "@/api/projectApi";
+import { useGetUserProjects } from "@/api/projectApi";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Link } from "react-router-dom";
 // import { formatDistanceToNow } from "date-fns";
 import { Folder, Plus } from "lucide-react";
+import { useUserStore } from "@/store/useUserStore";
 
 const YourProjects: React.FC = () => {
-  const { projects, isPending } = useGetMyProjects(1, true, "", "", 10);
+  const user = useUserStore((state) => state.user);
+  const { projects, isPending } = useGetUserProjects(user?.username, 1, true, "", "", 10);
 
   if (isPending) {
     return (

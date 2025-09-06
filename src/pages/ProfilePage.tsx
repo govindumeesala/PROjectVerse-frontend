@@ -3,20 +3,20 @@ import React from "react";
 import ProfileHeader from "@/components/profile/ProfileHeader";
 import StatsCard from "@/components/profile/StatsCard";
 import ProjectsTabs from "@/components/profile/projectsTabs/ProjectsTabs";
+import { useParams } from "react-router-dom";
 
 const ProfilePage: React.FC = () => {
-  // If you need the user's projects list to show below, fetch it here (optional).
-  // Otherwise ProfileHeader handles profile fetch; StatsCard handles stats fetch.
+  const {username} = useParams<{ username: string }>();
 
   return (
     <div className="p-6 max-w-6xl mx-auto space-y-6">
-      <ProfileHeader />
+      <ProfileHeader username={username} />
 
       {/* Stats Card */}
-      <StatsCard />
+      <StatsCard username={username} />
 
       {/* projects tabs */}
-      <ProjectsTabs />
+      <ProjectsTabs username={username} />
     </div>
   );
 };

@@ -3,9 +3,15 @@ import React, { useState } from "react";
 import { useGetContributedProjects } from "@/api/projectApi";
 import GenericProjectList from "@/components/profile/projectsTabs/GenericProjectList";
 
-const ContributionsPanel: React.FC<{ search?: string; status?: string }> = ({ search = "", status = "" }) => {
+type Props = {
+  search?: string;
+  status?: string;
+  username?: string;
+}
+
+const ContributionsPanel: React.FC<Props> = ({ search = "", status = "", username = "" }) => {
   const [page, setPage] = useState(1);
-  const { projects, total, isPending, isError } = useGetContributedProjects(page, true, search, status);
+  const { projects, total, isPending, isError } = useGetContributedProjects(username, page, true, search, status);
 
   return (
     <GenericProjectList

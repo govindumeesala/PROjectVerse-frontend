@@ -11,16 +11,17 @@ export const ENDPOINTS = {
   },
   USER: {
     ME: `${BASE_API}/user`, // Endpoint to get the current user's details
+    USER_BY_USERNAME: (username: string | undefined) => `${BASE_API}/user/${username}`, // Endpoint to get user details by username
     ALL_USERS: `${BASE_API}/user/all`, // Endpoint to fetch all users
-    STATS: `${BASE_API}/user/stats`, // Endpoint to fetch user statistics
-    BOOKMARKS: `${BASE_API}/user/bookmarks`, // Endpoint to fetch user bookmarks
+    STATS: (username: string | undefined) => `${BASE_API}/user/stats/${username}`, // Endpoint to fetch user statistics
+    BOOKMARKS: (username: string | undefined) => `${BASE_API}/user/bookmarks/${username}`, // Endpoint to fetch user bookmarks
     BOOKMARK_TOGGLE: `${BASE_API}/user/bookmarks/:projectId`, // Endpoint to toggle bookmark on a project
   },
   PROJECT: {
     CREATE: `${BASE_API}/project/create`,
     LIST: `${BASE_API}/project/list`,
-    MY_PROJECTS: `${BASE_API}/project/my-projects`,
-    CONTRIBUTED: `${BASE_API}/project/contributed`,
+    USER_PROJECTS: (username: string) => `${BASE_API}/project/user-projects/${username}`,
+    CONTRIBUTED: (username: string) => `${BASE_API}/project/contributed/${username}`,
     CHECK_TITLE: `${BASE_API}/project/check-title`,
 
     // Add more project endpoints here

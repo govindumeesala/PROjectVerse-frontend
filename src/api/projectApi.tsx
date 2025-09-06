@@ -1,5 +1,3 @@
-// projectApi.tsx
-// API + React Query hooks for projects
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { ENDPOINTS } from "./endpoints";
@@ -23,6 +21,7 @@ export type Paginated<T> = {
   total: number;
   page: number;
   limit: number;
+  isOwner?: boolean;
 };
 
 // --- Create Project --- //
@@ -59,16 +58,16 @@ export const useCreateProject = () => {
 };
 
 // Update the get function with proper typing
-export const getMyProjects = async (page = 1, limit = 3, search = "", status = ""): Promise<Paginated<Project>> => {
-  const res = await api.get(ENDPOINTS.PROJECT.MY_PROJECTS, { params: { page, limit, search, status } });
+export const getUserProjects = async (username = "", page = 1, limit = 3, search = "", status = ""): Promise<Paginated<Project>> => {
+  const res = await api.get(ENDPOINTS.PROJECT.USER_PROJECTS(username), { params: { page, limit, search, status } });
   return res.data.data;
 };
 
 // Update the hook with proper typing and modern React Query syntax
-export const useGetMyProjects = (page = 1, enabled = true, search = "", status = "", limit = 3) => {
+export const useGetUserProjects = (username = "", page = 1, enabled = true, search = "", status = "", limit = 3) => {
   const { data, isLoading, isError, isSuccess } = useQuery<Paginated<Project>>({
-    queryKey: ["myProjects", page, search, status],
-    queryFn: () => getMyProjects(page, limit, search, status),
+    queryKey: ["userProjects", username, page, search, status],
+    queryFn: () => getUserProjects(username, page, limit, search, status),
     enabled,
     placeholderData: (previousData) => previousData, // replaces keepPreviousData
   });
@@ -78,24 +77,25 @@ export const useGetMyProjects = (page = 1, enabled = true, search = "", status =
     total: data?.total ?? 0,
     page: data?.page ?? 1,
     limit: data?.limit ?? 10,
+    isOwner: data?.isOwner ?? false,
     isPending: isLoading,
     isError,
     isSuccess,
   };
 };
 
-export const getContributedProjects = async (page = 1, limit = 10, search = "", status = ""): Promise<Paginated<Project>> => {
-  const res = await api.get(ENDPOINTS.PROJECT.CONTRIBUTED, { params: { page, limit, search, status } });
+export const getContributedProjects = async (username = "", page = 1, limit = 10, search = "", status = ""): Promise<Paginated<Project>> => {
+  const res = await api.get(ENDPOINTS.PROJECT.CONTRIBUTED(username), { params: { page, limit, search, status } });
   return res.data.data;
 };
 
 /**
  * Contributed Projects
  */
-export const useGetContributedProjects = (page = 1, enabled = false, search = "", status = "") => {
+export const useGetContributedProjects = (username = "", page = 1, enabled = false, search = "", status = "") => {
   const { data, isLoading, isError, isSuccess } = useQuery({
-    queryKey: ["contributedProjects", page, search, status],
-    queryFn: () => getContributedProjects(page, 10, search, status),
+    queryKey: ["contributedProjects", username, page, search, status],
+    queryFn: () => getContributedProjects(username, page, 10, search, status),
     enabled,
     placeholderData: (previousData) => previousData, // replaces keepPreviousData
   });
@@ -105,6 +105,7 @@ export const useGetContributedProjects = (page = 1, enabled = false, search = ""
     total: data?.total ?? 0,
     page: data?.page ?? page,
     limit: data?.limit ?? 10,
+    isOwner: data?.isOwner ?? false,
     isPending: isLoading,
     isError,
     isSuccess,

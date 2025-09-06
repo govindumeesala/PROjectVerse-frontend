@@ -16,7 +16,11 @@ import { Search, Filter, Folder, Users, Bookmark, X } from "lucide-react";
  * Panels accept props: search (string) and status ('' | 'ongoing' | 'completed')
  */
 
-const ProjectsTabs: React.FC = () => {
+type Props = {
+  username?: string;
+}
+
+const ProjectsTabs: React.FC<Props> = ({ username }) => {
   const [active, setActive] = useState<"my" | "contributed" | "bookmarks">("my");
   const [visited, setVisited] = useState({ my: true, contributed: false, bookmarks: false });
 
@@ -219,15 +223,15 @@ const ProjectsTabs: React.FC = () => {
 
         {/* Panels: pass debouncedSearch + statusFilter */}
         <TabsContent value="my">
-          {visited.my ? <MyProjectsPanel search={debouncedSearch} status={statusFilter} /> : <TabPlaceholder />}
+          {visited.my ? <MyProjectsPanel username={username} search={debouncedSearch} status={statusFilter} /> : <TabPlaceholder />}
         </TabsContent>
 
         <TabsContent value="contributed">
-          {visited.contributed ? <ContributionsPanel search={debouncedSearch} status={statusFilter} /> : <TabPlaceholder />}
+          {visited.contributed ? <ContributionsPanel username={username} search={debouncedSearch} status={statusFilter} /> : <TabPlaceholder />}
         </TabsContent>
 
         <TabsContent value="bookmarks">
-          {visited.bookmarks ? <BookmarksPanel search={debouncedSearch} status={statusFilter} /> : <TabPlaceholder />}
+          {visited.bookmarks ? <BookmarksPanel username={username} search={debouncedSearch} status={statusFilter} /> : <TabPlaceholder />}
         </TabsContent>
       </Tabs>
     </div>

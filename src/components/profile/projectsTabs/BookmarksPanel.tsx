@@ -4,9 +4,15 @@ import { useGetBookmarks, useToggleBookmark } from "@/api/userApi";
 import { Project } from "@/api/projectApi";
 import GenericProjectList from "@/components/profile/projectsTabs/GenericProjectList";
 
-const BookmarksPanel: React.FC<{ search?: string; status?: string }> = ({ search = "", status = "" }) => {
+type Props = {
+  search?: string;
+  status?: string;
+  username?: string;
+};
+
+const BookmarksPanel: React.FC<Props> = ({ search = "", status = "", username = "" }) => {
   const [page, setPage] = useState(1);
-  const { projects, total, isPending, isError } = useGetBookmarks(page, true, search, status);
+  const { projects, total, isOwner, isPending, isError } = useGetBookmarks(username, page, true, search, status);
 
   // local items mirror server list (we do NOT remove items here on delete)
   const [items, setItems] = useState<Project[]>(projects);
@@ -61,7 +67,7 @@ const BookmarksPanel: React.FC<{ search?: string; status?: string }> = ({ search
       setPage={setPage}
       limit={3}
       showOwner={true}
-      showBookmarkAction={true}
+      showBookmarkAction={isOwner && true} // only show if owner
       isBookmarkedList={true}
       onToggleBookmark={handleRemove} // remove call
       loadingId={loadingId}
