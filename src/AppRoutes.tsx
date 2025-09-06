@@ -40,7 +40,7 @@ const AppRoutes = () => {
         <CreateProjectPage />
       </Layout>
     }  />
-    <Route path="/profile" element={
+    <Route path="/:username" element={
       <Layout>
         <ProfilePage />
       </Layout>

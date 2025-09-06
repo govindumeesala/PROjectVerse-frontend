@@ -22,6 +22,7 @@ type User = {
     // website?: string;
   };
   username: string; // ensure this exists
+  isOwner: boolean; // indicates if this user is the logged-in user
 };
 
 // fetch my profile (protected)
@@ -38,6 +39,20 @@ export const useGetMyProfile = () => {
     staleTime: 1000 * 60 * 2, // 2 minutes
     retry: 1,
   });
+  return { user: data, isPending, isError, isSuccess };
+};
+
+export const getUserByUsername = async (username: string | undefined): Promise<User> => {
+  const res = await api.get(ENDPOINTS.USER.USER_BY_USERNAME(username));
+  return res.data?.data;
+}
+
+export const useGetUserByUsername = (username: string | undefined) => {
+  const { data, isPending, isError, isSuccess } = useQuery<User>({
+    queryKey: ["user", username],
+    queryFn: () => getUserByUsername(username),
+  });
+
   return { user: data, isPending, isError, isSuccess };
 };
 
@@ -80,8 +95,8 @@ export const useGetAllUsers = () => {
   return { users: data, isPending, isError, isSuccess };
 };
 
-export const fetchMyStats = async (): Promise<any> => {
-  const response = await api.get(ENDPOINTS.USER.STATS);
+export const fetchMyStats = async (userId?: string): Promise<any> => {
+  const response = await api.get(ENDPOINTS.USER.STATS(userId));
   // normalize to the object stored in response.data.data (or fallback)
   return response?.data?.data ?? {
     projectsOwned: 0,
@@ -93,10 +108,10 @@ export const fetchMyStats = async (): Promise<any> => {
   };
 };
 
-export const useGetMyStats = () => {
+export const useGetMyStats = (userId?: string) => {
   const { data, isLoading, isError, isSuccess } = useQuery({
-    queryKey: ["user", "stats"],
-    queryFn: fetchMyStats,
+    queryKey: ["user", "stats", userId],
+    queryFn: () => fetchMyStats(userId),
     staleTime: 60 * 1000, // 1 minute - tweak as needed
     retry: 1,
   });
@@ -104,18 +119,18 @@ export const useGetMyStats = () => {
   return { stats: data, isPending: isLoading, isError, isSuccess };
 };
 
-export const getBookmarks = async (page = 1, limit = 10, search = "", status = ""): Promise<Paginated<Project>> => {
-  const res = await api.get(ENDPOINTS.USER.BOOKMARKS, { params: { page, limit, search, status } });
+export const getBookmarks = async (username: string, page = 1, limit = 10, search = "", status = ""): Promise<Paginated<Project>> => {
+  const res = await api.get(ENDPOINTS.USER.BOOKMARKS(username), { params: { page, limit, search, status } });
   return res.data.data;
 };
 
 /**
  * Bookmarks
  */
-export const useGetBookmarks = (page = 1, enabled = false, search = "", status = "") => {
+export const useGetBookmarks = (username: string, page = 1, enabled = false, search = "", status = "") => {
   const { data, isLoading, isError, isSuccess } = useQuery({
-    queryKey: ["bookmarks", page, search, status],
-    queryFn: () => getBookmarks(page, 10, search, status),
+    queryKey: ["bookmarks", username, page, search, status],
+    queryFn: () => getBookmarks(username, page, 10, search, status),
     enabled,
     placeholderData: (previousData) => previousData, // replaces keepPreviousData
   });
@@ -125,6 +140,7 @@ export const useGetBookmarks = (page = 1, enabled = false, search = "", status =
     total: data?.total ?? 0,
     page: data?.page ?? page,
     limit: data?.limit ?? 10,
+    isOwner: data?.isOwner ?? false,
     isPending: isLoading,
     isError,
     isSuccess,

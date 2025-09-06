@@ -3,15 +3,17 @@ import React, { useState, useMemo } from "react";
 import UpdateUserForm from "@/forms/UpdateUserForm";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useGetMyProfile } from "@/api/userApi";
+import { useGetUserByUsername } from "@/api/userApi";
 import { FaGithub, FaLinkedin, FaInstagram } from "react-icons/fa";
 
-type Props = {};
+type Props = {
+  username?: string;
+};
 
 const MAX_SUMMARY_CHARS = 260;
 
-const ProfileHeader: React.FC<Props> = () => {
-  const { user, isPending, isError } = useGetMyProfile();
+const ProfileHeader: React.FC<Props> = ({ username }) => {
+  const { user, isPending, isError } = useGetUserByUsername(username);
   const [editing, setEditing] = useState(false);
   const [showFullSummary, setShowFullSummary] = useState(false);
 
@@ -116,9 +118,11 @@ const ProfileHeader: React.FC<Props> = () => {
                 )}
               </>
             ) : (
-              <p className="text-gray-500 italic">
-                Add a summary about yourself to help others know you better
-              </p>
+              user?.isOwner && (
+                <p className="text-gray-500 italic">
+                  Add a summary about yourself to help others know you better
+                </p>
+              )
             )}
           </div>
 
@@ -161,24 +165,27 @@ const ProfileHeader: React.FC<Props> = () => {
                 )}
               </>
             ) : (
-              <span className="text-gray-400 text-sm italic">
-                Add your social media links to connect!
-              </span>
+              user?.isOwner && (
+                <span className="text-gray-400 text-sm italic">
+                  Add your social media links to connect!
+                </span>
+              )
             )}
           </div>
         </div>
 
-        {/* Actions - stays to the right on larger screens */}
-        <div className="mt-6 md:mt-0 md:ml-auto flex justify-center md:justify-end">
-          <Button
-            onClick={() => setEditing(true)}
-            className="bg-blue-800 hover:bg-blue-900 text-white cursor-pointer"
-            aria-label="Edit profile"
+        {user?.isOwner && (
+          <div className="mt-6 md:mt-0 md:ml-auto flex justify-center md:justify-end">
+            <Button
+              onClick={() => setEditing(true)}
+              className="bg-blue-800 hover:bg-blue-900 text-white cursor-pointer"
+              aria-label="Edit profile"
           >
             Edit Profile
           </Button>
           <UpdateUserForm user={user} open={editing} onOpenChange={setEditing} />
         </div>
+        )}
       </div>
     </div>
   );

@@ -163,8 +163,12 @@ const ProgressBar = ({
   );
 };
 
-const StatsCard: React.FC = () => {
-  const { stats, isPending } = useGetMyStats();
+type Props = {
+  username?: string; 
+}
+
+const StatsCard: React.FC<Props> = ({ username }) => {
+  const { stats, isPending } = useGetMyStats(username);
   const [showDonutBreakdown, setShowDonutBreakdown] = useState(false);
 
   if (isPending || !stats) {

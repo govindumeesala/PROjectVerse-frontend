@@ -56,7 +56,8 @@ Collaborator avatars → mini preview of who’s inside the project (like GitHub
 8. Drag and drop working in create-project form.
 9. looking for  collaboration
 10. skeleton on homepage
-11. Links for urls
+11. Links for url
+12. session expired please login toast when opening website **********************************
 
 
 
@@ -66,7 +67,7 @@ Collaborator avatars → mini preview of who’s inside the project (like GitHub
   2. my project open with edit option - p0 
   3. collaborations open view - p0 
 1. Add social media links to profile header - p0 - done
-2. update navbar with profile pic and first name - p1 
+2. update navbar with profile pic and first name - p1 - done
 3. update the donut in stats component - p3
 4. add username in user (frontend and backend) - p0 - done 
   2. update ui for completesignup with google - done 

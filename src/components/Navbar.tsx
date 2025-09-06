@@ -111,7 +111,7 @@ const Navbar: React.FC = () => {
 
               {isLoggedIn && (
                 <div className="mt-4 px-4 space-y-3">
-                  <Link to="/profile" className="block text-gray-800 font-medium">
+                  <Link to={`/${user?.username}`} className="block text-gray-800 font-medium">
                     Profile
                   </Link>
                   <Button
@@ -186,7 +186,7 @@ const Navbar: React.FC = () => {
                   <DropdownMenuSeparator className="border-t border-gray-300 my-3" />
 
                   <DropdownMenuLabel className="font-medium text-gray-700 cursor-pointer hover:text-blue-800">
-                    <Link to="/profile">Profile</Link>
+                    <Link to={`/${user.username}`}>Profile</Link>
                   </DropdownMenuLabel>
 
                   <div className="mt-3">
