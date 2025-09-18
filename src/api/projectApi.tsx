@@ -64,11 +64,11 @@ export const getUserProjects = async (username = "", page = 1, limit = 3, search
 };
 
 // Update the hook with proper typing and modern React Query syntax
-export const useGetUserProjects = (username = "", page = 1, enabled = true, search = "", status = "", limit = 3) => {
+export const useGetUserProjects = (username?: string, page = 1, enabled = true, search = "", status = "", limit = 3) => {
   const { data, isLoading, isError, isSuccess } = useQuery<Paginated<Project>>({
     queryKey: ["userProjects", username, page, search, status],
-    queryFn: () => getUserProjects(username, page, limit, search, status),
-    enabled,
+    queryFn: () => getUserProjects(username || "", page, limit, search, status),
+    enabled: enabled && !!username, // Only run if enabled AND username exists
     placeholderData: (previousData) => previousData, // replaces keepPreviousData
   });
 
@@ -92,11 +92,11 @@ export const getContributedProjects = async (username = "", page = 1, limit = 10
 /**
  * Contributed Projects
  */
-export const useGetContributedProjects = (username = "", page = 1, enabled = false, search = "", status = "") => {
+export const useGetContributedProjects = (username?: string, page = 1, enabled = false, search = "", status = "") => {
   const { data, isLoading, isError, isSuccess } = useQuery({
     queryKey: ["contributedProjects", username, page, search, status],
-    queryFn: () => getContributedProjects(username, page, 10, search, status),
-    enabled,
+    queryFn: () => getContributedProjects(username || "", page, 10, search, status),
+    enabled: enabled && !!username, // Only run if enabled AND username exists
     placeholderData: (previousData) => previousData, // replaces keepPreviousData
   });
 

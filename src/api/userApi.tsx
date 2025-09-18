@@ -51,6 +51,7 @@ export const useGetUserByUsername = (username: string | undefined) => {
   const { data, isPending, isError, isSuccess } = useQuery<User>({
     queryKey: ["user", username],
     queryFn: () => getUserByUsername(username),
+    enabled: !!username, // Only run query if username exists
   });
 
   return { user: data, isPending, isError, isSuccess };
@@ -95,8 +96,8 @@ export const useGetAllUsers = () => {
   return { users: data, isPending, isError, isSuccess };
 };
 
-export const fetchMyStats = async (userId?: string): Promise<any> => {
-  const response = await api.get(ENDPOINTS.USER.STATS(userId));
+export const fetchMyStats = async (username?: string): Promise<any> => {
+  const response = await api.get(ENDPOINTS.USER.STATS(username));
   // normalize to the object stored in response.data.data (or fallback)
   return response?.data?.data ?? {
     projectsOwned: 0,
@@ -108,10 +109,11 @@ export const fetchMyStats = async (userId?: string): Promise<any> => {
   };
 };
 
-export const useGetMyStats = (userId?: string) => {
+export const useGetMyStats = (username?: string) => {
   const { data, isLoading, isError, isSuccess } = useQuery({
-    queryKey: ["user", "stats", userId],
-    queryFn: () => fetchMyStats(userId),
+    queryKey: ["user", "stats", username],
+    queryFn: () => fetchMyStats(username),
+    enabled: !!username, // Only run query if username exists
     staleTime: 60 * 1000, // 1 minute - tweak as needed
     retry: 1,
   });
@@ -127,11 +129,11 @@ export const getBookmarks = async (username: string, page = 1, limit = 10, searc
 /**
  * Bookmarks
  */
-export const useGetBookmarks = (username: string, page = 1, enabled = false, search = "", status = "") => {
+export const useGetBookmarks = (username?: string, page = 1, enabled = false, search = "", status = "") => {
   const { data, isLoading, isError, isSuccess } = useQuery({
     queryKey: ["bookmarks", username, page, search, status],
-    queryFn: () => getBookmarks(username, page, 10, search, status),
-    enabled,
+    queryFn: () => getBookmarks(username!, page, 10, search, status),
+    enabled: enabled && !!username, // Only run if enabled AND username exists
     placeholderData: (previousData) => previousData, // replaces keepPreviousData
   });
 

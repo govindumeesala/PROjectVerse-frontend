@@ -33,14 +33,14 @@ export const useSignupUser = () => {
       try {
         const profile = await getMyProfile();
         setUser(profile);
+        toast.success("Successfully registered", {
+          description: "Welcome to PROjectVerse!",
+        });
+        // Navigate to the user's profile page using their username
+        navigate(`/${profile.username}`);
       } catch (err) {
         console.error("Failed to fetch profile after signup", err);
       }
-
-      toast.success("Successfully registered", {
-        description: "Welcome to PROjectVerse!",
-      });
-      navigate("/profile");
     },
     onError: (error: any) => {
       console.error("Signup error:", error);
@@ -74,14 +74,16 @@ export const useLoginUser = () => {
       try {
         const profile = await getMyProfile();
         setUser(profile);
+        toast.success("Successfully logged in", {
+          description: "Welcome back!",
+        });
+        // Navigate to the user's profile page using their username
+        navigate(`/${profile.username}`);
       } catch (err) {
         console.error("Failed to fetch profile after login", err);
+        // Fallback to /profile if we can't get the username
+        navigate("/profile");
       }
-
-      toast.success("Successfully logged in", {
-        description: "Welcome back!",
-      });
-      navigate("/profile");
     },
     onError: (error: any) => {
       const errMsg = error?.response?.data?.message || "Invalid credentials.";
@@ -119,12 +121,12 @@ export const useGoogleLogin = () => {
       try {
         const profile = await getMyProfile();
         setUser(profile);
+        toast.success("Successfully logged in");
+        // Navigate to the user's profile page using their username
+        navigate(`/${profile.username}`);
       } catch (err) {
         console.error("Failed to fetch profile after google login", err);
       }
-
-      toast.success("Successfully logged in");
-      navigate("/profile");
     },
     onError: (error: any) => {
       // Let the component handle specific error cases
