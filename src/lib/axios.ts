@@ -54,8 +54,8 @@ api.interceptors.response.use(
       isRefreshing = true;
 
       try {
-        const { data } = await refreshAccessToken(); 
-        const token = data.accessToken;
+        const response = await refreshAccessToken(); 
+        const token = response.data.accessToken;
 
         useAuthStore.getState().setAccessToken(token);
         processQueue(null, token);

@@ -4,10 +4,8 @@ import UpdateUserForm from "@/forms/UpdateUserForm";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useGetUserByUsername } from "@/api/userApi";
-import { useUserStore } from "@/store/useUserStore";
 import { FaGithub, FaLinkedin, FaInstagram } from "react-icons/fa";
 import { Edit, Mail, Calendar, Hash } from "lucide-react";
-
 type Props = {
   username?: string;
 };
@@ -15,20 +13,24 @@ type Props = {
 const MAX_SUMMARY_CHARS = 260;
 
 const ProfileHeader: React.FC<Props> = ({ username }) => {
-  const { user: currentUser } = useUserStore();
   const { user, isPending, isError } = useGetUserByUsername(username);
   const [editing, setEditing] = useState(false);
   const [showFullSummary, setShowFullSummary] = useState(false);
 
-  // Check if this is the current user's profile
-  const isOwnProfile = currentUser?.username === username;
+  // Use isOwner from API response instead of comparing usernames
+  const isOwnProfile = user?.isOwner || false;
 
   // Get first letter for avatar - prioritize name, fallback to email, then "U"
   const avatarLetter = useMemo(() => {
-    if (user?.name) return user.name.charAt(0).toUpperCase();
-    if (user?.email) return user.email.charAt(0).toUpperCase();
+    if (!user) return "U";
+    if (user.name?.length > 0) return user.name.charAt(0).toUpperCase();
+    if (user.email?.length > 0) return user.email.charAt(0).toUpperCase();
     return "U";
-  }, [user?.name, user?.email]);
+  }, [user]);
+
+  // Handle profile picture with fallback to avatar letter
+  const [imageError, setImageError] = useState(false);
+  const showAvatar = !user?.profilePhoto || imageError;
 
   // Loading state
   if (isPending) {
@@ -108,15 +110,19 @@ const ProfileHeader: React.FC<Props> = ({ username }) => {
         {/* Profile photo - centered on mobile */}
         <div className="flex-shrink-0 flex justify-center lg:block">
           <div className="relative">
-            <div className="w-24 h-24 sm:w-32 sm:h-32 md:w-40 md:h-40 lg:w-48 lg:h-48 rounded-full overflow-hidden bg-gradient-to-br from-blue-100 to-indigo-200 flex items-center justify-center text-2xl sm:text-3xl md:text-4xl font-bold text-gray-700 shadow-lg ring-4 ring-white/50 hover:ring-blue-200 transition-all duration-300">
-              {user?.profilePhoto ? (
+            <div className="relative w-32 h-32 md:w-48 md:h-48 lg:w-56 lg:h-56 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 overflow-hidden shadow-lg border-4 border-white/20">
+              {!showAvatar && user?.profilePhoto && (
                 <img
                   src={user.profilePhoto}
-                  alt={user.name || "Profile photo"}
-                  className="w-full h-full object-cover"
+                  alt={`${user.name || 'User'}'s profile`}
+                  className="w-full h-full object-cover rounded-full"
+                  onError={() => setImageError(true)}
                 />
-              ) : (
-                <span className="select-none">{avatarLetter}</span>
+              )}
+              {showAvatar && (
+                <div className="absolute inset-0 flex items-center justify-center text-white text-4xl md:text-6xl font-bold">
+                  {avatarLetter}
+                </div>
               )}
             </div>
             {/* Online indicator */}

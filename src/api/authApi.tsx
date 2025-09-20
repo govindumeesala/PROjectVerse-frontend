@@ -180,22 +180,26 @@ export const refreshAccessToken = async () => {
 };
 
 export const useRefreshAccessToken = () => {
+  const queryClient = useQueryClient();
   const setAccessToken = useAuthStore.getState().setAccessToken;
   const setUser = useUserStore.getState().setUser;
 
   const { mutateAsync: refresh, isPending, isError, isSuccess } = useMutation({
+    mutationKey: ['refreshToken'],
     mutationFn: refreshAccessToken,
     onSuccess: async (data) => {
       const accessToken = data.data.accessToken;
-
+      setAccessToken(accessToken);
+      
+      // Invalidate all queries to refetch with new token
+      await queryClient.invalidateQueries();
+      
       try {
         const profile = await getMyProfile();
         setUser(profile);
       } catch (err) {
         console.error("Failed to fetch profile after refresh", err);
       }
-
-      setAccessToken(accessToken);
     },
     onError: (error: any) => {
       console.error("Refresh token failed", error);
