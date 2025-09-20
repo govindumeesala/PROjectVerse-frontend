@@ -271,15 +271,7 @@ function App() {
             <AppRoutes />
             <Toaster 
               richColors
-              position="top-center"
               toastOptions={{
-                style: {
-                  background: 'white',
-                  color: '#1f2937',
-                  border: '1px solid #e5e7eb',
-                  borderRadius: '0.5rem',
-                  boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)'
-                },
                 classNames: {
                   success: 'border-l-4 border-green-500',
                   error: 'border-l-4 border-red-500',
