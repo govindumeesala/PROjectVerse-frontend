@@ -11,7 +11,7 @@ import { useUserStore } from "@/store/useUserStore";
 const YourProjects: React.FC = () => {
   const user = useUserStore((state) => state.user);
   const { projects, isPending } = useGetUserProjects(user?.username, 1, true, "", "", 10);
-
+  console.log(projects);
   if (isPending) {
     return (
       <div className="space-y-4">
@@ -46,7 +46,6 @@ const YourProjects: React.FC = () => {
       </div>
     );
   }
-
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -65,7 +64,7 @@ const YourProjects: React.FC = () => {
           >
             <Folder className="w-4 h-4 text-slate-500" />
             <Link
-              to={`/projects/${project._id}`}
+              to={`/${(user?.username || project?.owner?.username)}/${project.slug}`}
               className="text-sm text-slate-700 group-hover:text-slate-900 flex-1 min-w-0 truncate"
             >
               {project.title}

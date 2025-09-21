@@ -53,7 +53,6 @@ const Avatar: React.FC<{
 
 const Navbar: React.FC = () => {
   const user = useUserStore((state) => state.user);
-  console.log("Navbar user:", user);
   const isLoggedIn = user !== null;
   const { logout, isPending } = useLogoutUser();
   const navigate = useNavigate();

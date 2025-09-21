@@ -1,3 +1,4 @@
+
 const BASE_API = import.meta.env.VITE_BASE_API;
 
 export const ENDPOINTS = {
@@ -26,16 +27,15 @@ export const ENDPOINTS = {
 
     // Add more project endpoints here
     PROJECT_FEED: `${BASE_API}/project/feed`,
-    PROJECT_BY_ID: (id: string) => `${BASE_API}/project/${id}`,
     LIKE_PROJECT: (id: string) => `${BASE_API}/project/${id}/like`,
     UNLIKE_PROJECT: (id: string) => `${BASE_API}/project/${id}/unlike`,
     COMMENTS: (id: string) => `${BASE_API}/project/${id}/comments`,
 
-
     //Single Project related endpoints
     GET: (username: string, projectTitle: string) => `${BASE_API}/project/${username}/${projectTitle}`,
     UPDATE: (username: string, projectTitle: string) => `${BASE_API}/project/${username}/${projectTitle}`,
-    REQUEST_TO_JOIN: (username: string, projectTitle: string) => `${BASE_API}/project/${username}/${projectTitle}/join`,
+    REQUEST_TO_JOIN: (username: string, projectSlug: string) => `${BASE_API}/project/${username}/${projectSlug}/join`,
+    RESPOND_TO_REQUEST: (username: string, projectSlug: string, requestId: string) => `${BASE_API}/project/${username}/${projectSlug}/respond-to-request/${requestId}`
   },
   // Add other resource endpoints as needed
 };

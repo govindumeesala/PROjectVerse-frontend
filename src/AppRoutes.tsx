@@ -36,7 +36,7 @@ const AppRoutes = () => {
       </Layout>
     }  />
 
-    <Route path="/:username/:projectTitle" element={
+    <Route path="/:username/:slug" element={
       <Layout>
         <ProjectPage />
       </Layout>

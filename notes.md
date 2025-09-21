@@ -44,20 +44,18 @@ Collaborator avatars → mini preview of who’s inside the project (like GitHub
 
 # TASKS FOR SUDHEER
 # create project 
-1. removed contributors field  from project model - done
-2. store contributors in the contributors collection only - done
-3. update the create project controller - TODO (p0) - done
-4. dont toast in form (create project form) - we are doing it in api file - TODO (p1) - done
-5. like tech stack add dropdown for domain also - TODO (P0) - done.
-6. add _id along with the name and email in getAllusers route - done
-11. update status on projectCard to ongoing,completed,lookingforCollaboration - done 
-11. a (change color of looking for collaborators)
-12. comment count not updating - done
 8. Drag and drop working in create-project form.
 9. looking for  collaboration
 10. skeleton on homepage
 11. Links for url
 12. session expired please login toast when opening website **********************************
+
+### Profile page
+1. Request to Join button state and disable
+2. contributors route
+3. RequestToJoin responses render
+4. likes and comment count and liked or bookmarked
+
 
 
 

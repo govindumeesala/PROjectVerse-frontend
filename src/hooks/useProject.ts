@@ -1,29 +1,58 @@
+
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { getProject, requestToJoin, updateProject } from "@/api/projectApi";
+import { getProject, requestToJoin, updateProject,respondToRequest } from "@/api/projectApi";
 
-export const useProject = (username: string, title: string) => {
-  return useQuery({
-    queryKey: ["project", username, title],
-    queryFn: () => getProject(username, title),
+export const useProject = (username: string, slug: string) => {
+  const { data, isPending, isError, isSuccess } = useQuery({
+    queryKey: ["project", username, slug],
+    queryFn: () => getProject(username, slug),
   });
+  return { data, isLoading: isPending, isError, isSuccess };
 };
 
-export const useRequestToJoin = (username: string, title: string) => {
+// hooks/useProject.ts
+export const useRequestToJoin = (
+  username: string,
+  slug: string,
+  { onSuccess }: { onSuccess: () => void }
+) => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: () => requestToJoin(username, title),
+    mutationFn: (data: { roleRequested: string; message: string }) =>
+      requestToJoin(username, slug, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["project", username, title] }); // refresh state
+      queryClient.invalidateQueries({ queryKey: ["project", username, slug] });
+      onSuccess();
     },
   });
 };
 
-export const useUpdateProject = (username: string, title: string) => {
+
+export const useUpdateProject = (username: string, slug: string) => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (updates: any) => updateProject(username, title, updates),
+    mutationFn: (updates: any) => updateProject(username, slug, updates),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["project", username, title] });
+      queryClient.invalidateQueries({ queryKey: ["project", username, slug] });
     },
   });
 };
+
+
+// hooks/useProject.ts
+export const useRespondToRequest = (
+  username: string,
+  slug: string,
+  { onSuccess }: { onSuccess: () => void }
+) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: { requestId: string; action: "accept" | "reject" }) =>
+      respondToRequest(username, slug, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["project", username, slug] });
+      onSuccess();
+    },
+  });
+};
+

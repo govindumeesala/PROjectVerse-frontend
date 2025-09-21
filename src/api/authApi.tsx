@@ -38,9 +38,16 @@ export const useSignupUser = () => {
         });
         // Navigate to the user's profile page using their username
         navigate(`/${profile.username}`);
+
+        
+      navigate(`/${profile.username}`);
       } catch (err) {
         console.error("Failed to fetch profile after signup", err);
       }
+
+      toast.success("Successfully registered", {
+        description: "Welcome to PROjectVerse!",
+      });
     },
     onError: (error: any) => {
       console.error("Signup error:", error);
@@ -68,7 +75,6 @@ export const useLoginUser = () => {
   const { mutateAsync: login, isPending, isError, isSuccess } = useMutation({
     mutationFn: loginUser,
     onSuccess: async (data) => {
-      console.log("Login response:", data);
       setAccessToken(data.data.accessToken);
 
       try {
@@ -79,11 +85,18 @@ export const useLoginUser = () => {
         });
         // Navigate to the user's profile page using their username
         navigate(`/${profile.username}`);
+
+        
+      navigate(`/${profile.username}`);
       } catch (err) {
         console.error("Failed to fetch profile after login", err);
         // Fallback to /profile if we can't get the username
         navigate("/profile");
       }
+
+      toast.success("Successfully logged in", {
+        description: "Welcome back!",
+      });
     },
     onError: (error: any) => {
       const errMsg = error?.response?.data?.message || "Invalid credentials.";
@@ -124,9 +137,14 @@ export const useGoogleLogin = () => {
         toast.success("Successfully logged in");
         // Navigate to the user's profile page using their username
         navigate(`/${profile.username}`);
+
+        
+      navigate(`/${profile.username}`);
       } catch (err) {
         console.error("Failed to fetch profile after google login", err);
       }
+
+      toast.success("Successfully logged in");
     },
     onError: (error: any) => {
       // Let the component handle specific error cases

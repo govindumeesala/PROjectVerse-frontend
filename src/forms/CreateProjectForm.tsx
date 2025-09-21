@@ -14,6 +14,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useCreateProject, useCheckProjectTitle } from "@/api/projectApi";
+import { useUpdateProject } from "@/hooks/useProject";
 import { useState } from "react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { debounce } from "lodash";
@@ -59,24 +60,54 @@ const projectSchema = z.object({
     .or(z.literal("")),
 });
 
-export const CreateProjectForm = () => {
-  const { createProject, isPending } = useCreateProject();
+type FormValues = {
+  title: string;
+  description: string;
+  domain: string[];
+  techStack: string[];
+  status: "ongoing" | "completed";
+  lookingForContributors?: boolean;
+  contributors?: string[];
+  projectPhoto?: any;
+  githubURL?: string;
+  deploymentURL?: string;
+  demoURL?: string;
+};
+
+export const CreateProjectForm = ({
+  mode = "create",
+  initialValues,
+  username,
+  slug,
+  onSuccess,
+}: {
+  mode?: "create" | "edit";
+  initialValues?: Partial<FormValues>;
+  username?: string;
+  slug?: string;
+  onSuccess?: () => void;
+}) => {
+  const { createProject, isPending: isCreating } = useCreateProject();
+  const { mutateAsync: updateProject, isPending: isUpdating } = useUpdateProject(
+    username || "",
+    slug || ""
+  );
   const { users = [], isPending: isUsersLoading } = useGetAllUsers();
 
-  const form = useForm({
+  const form = useForm<FormValues>({
     resolver: zodResolver(projectSchema),
     defaultValues: {
-      title: "",
-      description: "",
-      domain: [],
-      techStack: [],
-      status: "ongoing",
-      lookingForContributors: false,
-      contributors: [],
-      projectPhoto: "",
-      githubURL: "",
-      deploymentURL: "",
-      demoURL: "",
+      title: initialValues?.title ?? "",
+      description: initialValues?.description ?? "",
+      domain: initialValues?.domain ?? [],
+      techStack: initialValues?.techStack ?? [],
+      status: (initialValues?.status as any) ?? "ongoing",
+      lookingForContributors: initialValues?.lookingForContributors ?? false,
+      contributors: initialValues?.contributors ?? [],
+      projectPhoto: initialValues?.projectPhoto ?? "",
+      githubURL: initialValues?.githubURL ?? "",
+      deploymentURL: initialValues?.deploymentURL ?? "",
+      demoURL: initialValues?.demoURL ?? "",
     },
   });
 
@@ -95,7 +126,6 @@ export const CreateProjectForm = () => {
       try {
         const result = await checkTitle(title);
         setIsTitleAvailable(result.available);
-        console.log(result.available);
         setWasTitleChecked(true);
         if (!result.available) {
           form.setError("title", {
@@ -158,47 +188,73 @@ export const CreateProjectForm = () => {
     );
   };
 
-  const onSubmit = async (data: any) => {
+  const onSubmit = async (data: FormValues) => {
     try {
-      // if projectPhoto is a File object (user uploaded), build FormData
-      if (data.projectPhoto && typeof data.projectPhoto !== "string") {
-        const fd = new FormData();
-        fd.append("title", data.title);
-        fd.append("description", data.description);
-        fd.append("domain", data.domain);
-        (data.techStack || []).forEach((t: string) =>
-          fd.append("techStack[]", t)
-        );
-        fd.append("status", data.status);
-        fd.append(
-          "lookingForContributors",
-          data.lookingForContributors ? "true" : "false"
-        );
-        (data.contributors || []).forEach((c: string) =>
-          fd.append("contributors[]", c)
-        );
-        fd.append("projectPhoto", data.projectPhoto);
-        if (data.githubURL) fd.append("githubURL", data.githubURL);
-        if (data.deploymentURL) fd.append("deploymentURL", data.deploymentURL);
-        if (data.demoURL) fd.append("demoURL", data.demoURL);
-
-        await createProject(fd);
+      if (mode === "edit") {
+        // Update selected fields; omit title by default (backend may not allow change)
+        const updates: any = {
+          description: data.description,
+          domain: data.domain,
+          techStack: data.techStack,
+          status: data.status,
+          lookingForContributors: !!data.lookingForContributors,
+          githubURL: data.githubURL,
+          deploymentURL: data.deploymentURL,
+          additionalURL: data.demoURL,
+        };
+        await updateProject(updates);
+        onSuccess?.();
       } else {
-        if (!isTitleAvailable) {
-          form.setError("title", {
-            type: "manual",
-            message: "Please choose an available project title",
-          });
-          return;
-        }
-        await createProject({
-          ...data,
-        });
-      }
+        // if projectPhoto is a File object (user uploaded), build FormData
+        if (data.projectPhoto && typeof data.projectPhoto !== "string") {
+          const fd = new FormData();
+          fd.append("title", data.title);
+          fd.append("description", data.description);
+          // Append arrays by repeating the same key; multer will aggregate into arrays
+          (data.domain || []).forEach((d: string) => fd.append("domain", d));
+          (data.techStack || []).forEach((t: string) => fd.append("techStack", t));
+          fd.append("status", data.status);
+          fd.append(
+            "lookingForContributors",
+            data.lookingForContributors ? "true" : "false"
+          );
+          (data.contributors || []).forEach((c: string) => fd.append("contributors", c));
+          fd.append("projectPhoto", data.projectPhoto);
+          if (data.githubURL) fd.append("githubURL", data.githubURL);
+          if (data.deploymentURL) fd.append("deploymentURL", data.deploymentURL);
+          // Backend expects additionalURL
+          if (data.demoURL) fd.append("additionalURL", data.demoURL);
 
-      form.reset();
-      setContributorInput("");
-      // toast.success("Project created successfully!");
+          await createProject(fd);
+        } else {
+          if (!isTitleAvailable) {
+            form.setError("title", {
+              type: "manual",
+              message: "Please choose an available project title",
+            });
+            return;
+          }
+          // Submit as FormData even without a file, to match API typing
+          const fd = new FormData();
+          fd.append("title", data.title);
+          fd.append("description", data.description);
+          (data.domain || []).forEach((d: string) => fd.append("domain", d));
+          (data.techStack || []).forEach((t: string) => fd.append("techStack", t));
+          fd.append("status", data.status);
+          fd.append(
+            "lookingForContributors",
+            data.lookingForContributors ? "true" : "false"
+          );
+          (data.contributors || []).forEach((c: string) => fd.append("contributors", c));
+          if (data.githubURL) fd.append("githubURL", data.githubURL);
+          if (data.deploymentURL) fd.append("deploymentURL", data.deploymentURL);
+          if (data.demoURL) fd.append("additionalURL", data.demoURL);
+
+          await createProject(fd);
+        }
+        form.reset();
+        setContributorInput("");
+      }
     } catch (err) {
       console.error("Create project error:", err);
       // toast.error("Failed to create project");
@@ -211,7 +267,7 @@ export const CreateProjectForm = () => {
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Create a new project
+            {mode === "edit" ? "Edit project" : "Create a new project"}
           </h1>
           <p className="text-gray-600 text-lg">
             Projects showcase your work and help you find collaborators. Have a
@@ -259,10 +315,12 @@ export const CreateProjectForm = () => {
                           {...field}
                           className="border-gray-300 focus:border-blue-500 focus:ring-blue-500 h-11"
                           onChange={(e) => {
-                            field.onChange(e); // update form state
-                            form.clearErrors("title"); // clear previous error
-                            setWasTitleChecked(false); // reset
-                            checkTitleAvailability(e.target.value); // debounce API call
+                            field.onChange(e);
+                            if (mode !== "edit") {
+                              form.clearErrors("title");
+                              setWasTitleChecked(false);
+                              checkTitleAvailability(e.target.value);
+                            }
                           }}
                         />
                       </FormControl>
@@ -669,10 +727,16 @@ export const CreateProjectForm = () => {
             <div className="flex justify-end">
               <Button
                 type="submit"
-                disabled={isPending}
+                disabled={mode === "edit" ? isUpdating : isCreating}
                 className="bg-emerald-600 hover:bg-emerald-700 text-white px-8 py-3 h-12 text-base font-medium rounded-lg transition-colors shadow-lg hover:shadow-xl"
               >
-                {isPending ? "Creating project..." : "Create project"}
+                {mode === "edit"
+                  ? isUpdating
+                    ? "Updating project..."
+                    : "Update project"
+                  : isCreating
+                  ? "Creating project..."
+                  : "Create project"}
               </Button>
             </div>
           </form>

@@ -198,17 +198,40 @@ export const useCheckProjectTitle = () => {
   });
 };
 
-export const getProject = async (username: string, projectTitle: string) => {
-  const response = await api.get(ENDPOINTS.PROJECT.GET(username, projectTitle));
+export const getProject = async (username: string, slug: string) => {
+  const response = await api.get(ENDPOINTS.PROJECT.GET(username, slug));
   return response.data.data;
 };
 
-export const requestToJoin = async (username: string, projectTitle: string) => {
-  const response = await api.post(ENDPOINTS.PROJECT.REQUEST_TO_JOIN(username, projectTitle));
+
+// services/project.ts
+export const requestToJoin = async (
+  username: string,
+  slug: string,
+  data: { roleRequested: string; message: string }
+) => {
+  const response = await api.post(
+    ENDPOINTS.PROJECT.REQUEST_TO_JOIN(username, slug),
+    data
+  );
   return response.data.data;
 };
+
 
 export const updateProject = async (username: string, projectTitle: string, updates: any) => {
   const response = await api.put(ENDPOINTS.PROJECT.UPDATE(username, projectTitle), updates);
+  return response.data.data;
+};
+
+// services/project.ts
+export const respondToRequest = async (
+  username: string,
+  slug: string,
+  data: { requestId: string; action: "accept" | "reject" }
+) => {
+  const response = await api.patch(
+    ENDPOINTS.PROJECT.RESPOND_TO_REQUEST(username, slug, data.requestId),
+    { action: data.action }
+  );
   return response.data.data;
 };

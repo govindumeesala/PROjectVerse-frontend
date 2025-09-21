@@ -1,20 +1,8 @@
 import { useState } from "react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import {
-  Heart,
-  MessageCircle,
-  Share2,
-  Bookmark,
-  Github,
-  Globe,
-  Link2,
-} from "lucide-react";
+import { Github, Globe, Link2 } from "lucide-react";
 import CommentSection from "./CommentSection";
-import { likeProject, unlikeProject } from "@/api/projectApi";
-import { toggleBookmarkApi } from "@/api/userApi";
-import { toast } from "sonner";
 import {
   Tooltip,
   TooltipContent,
@@ -22,69 +10,22 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { useNavigate } from "react-router-dom";
+import ProjectActions from "@/components/ProjectActions";
 
 export default function ProjectCard({ project, refetch }: any) {
-  const [showComments, setShowComments] = useState(false);
-  const [likes, setLikes] = useState(project.likesCount || 0);
-  const [liked, setLiked] = useState(project.likedByUser || false);
-  const [bookmarked, setBookmarked] = useState(
-    project.bookmarkedByUser || false
-  );
-  const [commentsCount, setCommentsCount] = useState(
-    project.commentsCount || 0
-  );
   const navigate = useNavigate();
+  const [showComments, setShowComments] = useState(false);
+  const [, setLiked] = useState(Boolean(project.likedByUser));
+  const [, setLikes] = useState(Number(project.likesCount ?? 0));
+  const [, setBookmarked] = useState(Boolean(project.bookmarkedByUser));
+  const [, setCommentsCount] = useState(Number(project.commentsCount ?? 0));
 
-  // Go to project page normally
-  const handleCardClick = () => {
-    navigate(`/${project.owner.username}/${project.title}`);
-  };
+  const handleProjectClick = () =>
+    navigate(`/${project.owner.username}/${project.slug}`);
 
-  // ❤️ Toggle Like
-  const handleLike = async () => {
-    try {
-      const res = await (liked ? unlikeProject : likeProject)(project._id);
-      if (res.success) {
-        setLiked((prev: any) => !prev);
-        setLikes(res.data.likes); // backend sends updated count
-      }
-    } catch {
-      toast.error("Failed to update like");
-    }
-  };
-
-  // 🔖 Toggle Bookmark
-  const handleBookmark = async () => {
-    try {
-      const action = bookmarked ? "remove" : "add";
-      const res = await toggleBookmarkApi(project._id, action);
-      if (res.success) {
-        setBookmarked(action === "add");
-        toast.success(
-          action === "add" ? "Added to bookmarks" : "Removed from bookmarks"
-        );
-      }
-    } catch {
-      toast.error("Failed to update bookmark");
-    }
-  };
-
-  // 📤 Share
-  const handleShare = async () => {
-    try {
-      const url = `${window.location.origin}/project/${project._id}`;
-      await navigator.clipboard.writeText(url);
-      toast.success("Link copied to clipboard!");
-    } catch {
-      toast.error("Failed to copy link");
-    }
-  };
-
-  // 🙋 Request to Join
-  const handleRequestJoin = () => {
-    navigate(`/${project.owner.username}/${project.title}`, {
-      state: { highlightJoin: true },
-    });
+  const handleProfileClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    navigate(`/${project.owner.username}`);
   };
 
   const displayStatus =
@@ -94,13 +35,17 @@ export default function ProjectCard({ project, refetch }: any) {
 
   return (
     <Card
-      onClick={handleCardClick}
-      className="w-full shadow-lg rounded-2xl border border-slate-200 bg-white overflow-hidden transition-all duration-300 hover:shadow-xl"
+      onClick={handleProjectClick}
+      className="w-full shadow-lg rounded-2xl border border-slate-200 bg-white overflow-hidden transition-all duration-300 hover:shadow-xl cursor-pointer"
     >
+      {/* HEADER */}
       <CardHeader className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between p-6">
         <div className="flex items-start gap-4 flex-grow">
           {project.owner?.profilePhoto && (
-            <Avatar className="w-12 h-12 border-2 border-slate-300 flex-shrink-0">
+            <Avatar
+              className="w-12 h-12 border-2 border-slate-300 flex-shrink-0 cursor-pointer"
+              onClick={handleProfileClick}
+            >
               <AvatarImage
                 src={project.owner.profilePhoto}
                 alt={project.owner.name}
@@ -112,7 +57,10 @@ export default function ProjectCard({ project, refetch }: any) {
             <h2 className="font-bold text-xl text-slate-800 leading-tight">
               {project.title}
             </h2>
-            <p className="text-sm text-slate-600 font-medium mt-1">
+            <p
+              className="text-sm text-slate-600 font-medium mt-1 cursor-pointer hover:underline"
+              onClick={handleProfileClick}
+            >
               by {project.owner?.name}
             </p>
             {project.domain && (
@@ -134,6 +82,7 @@ export default function ProjectCard({ project, refetch }: any) {
         </span>
       </CardHeader>
 
+      {/* CONTENT */}
       <CardContent className="space-y-6 px-6 pb-6">
         <p className="text-sm text-slate-700 leading-relaxed whitespace-pre-wrap">
           {project.description}
@@ -147,6 +96,7 @@ export default function ProjectCard({ project, refetch }: any) {
           />
         )}
 
+        {/* Tech stack */}
         <div className="flex flex-wrap gap-2">
           {project.techStack?.map((tech: string, idx: number) => (
             <span
@@ -158,6 +108,7 @@ export default function ProjectCard({ project, refetch }: any) {
           ))}
         </div>
 
+        {/* Contributors */}
         {project.collaborations?.length > 0 && (
           <div className="flex items-center gap-2">
             <span className="text-sm text-slate-600 font-medium">
@@ -186,12 +137,14 @@ export default function ProjectCard({ project, refetch }: any) {
           </div>
         )}
 
+        {/* Links */}
         <div className="flex flex-wrap gap-2">
           {project.githubURL && (
             <a
               href={project.githubURL}
               target="_blank"
               rel="noopener noreferrer"
+              onClick={(e) => e.stopPropagation()}
               className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-full bg-slate-800 text-white hover:bg-black transition-colors"
             >
               <Github className="w-4 h-4" /> GitHub
@@ -202,6 +155,7 @@ export default function ProjectCard({ project, refetch }: any) {
               href={project.deploymentURL}
               target="_blank"
               rel="noopener noreferrer"
+              onClick={(e) => e.stopPropagation()}
               className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-full bg-blue-600 text-white hover:bg-blue-700 transition-colors"
             >
               <Globe className="w-4 h-4" /> Golive
@@ -212,6 +166,7 @@ export default function ProjectCard({ project, refetch }: any) {
               href={project.additionalUrl}
               target="_blank"
               rel="noopener noreferrer"
+              onClick={(e) => e.stopPropagation()}
               className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-full bg-emerald-600 text-white hover:bg-emerald-700 transition-colors"
             >
               <Link2 className="w-4 h-4" /> More
@@ -219,76 +174,35 @@ export default function ProjectCard({ project, refetch }: any) {
           )}
         </div>
 
-        <div className="flex flex-wrap items-center gap-3 pt-3 border-t border-slate-100">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleLike}
-            className={`transition-colors ${
-              project.likedByUser || liked ? "text-red-500" : "text-slate-500"
-            } hover:bg-red-50 hover:text-red-600`}
-          >
-            <Heart
-              className="w-4 h-4 mr-1 transition-transform group-hover:scale-110"
-              fill={project.likedByUser || liked ? "red" : "none"}
-            />{" "}
-            {likes}
-          </Button>
-
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setShowComments((prev) => !prev)}
-            className="text-slate-500 hover:bg-slate-50 hover:text-slate-600"
-          >
-            <MessageCircle className="w-4 h-4 mr-1" /> {commentsCount}
-          </Button>
-
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleBookmark}
-            className={`transition-colors ${
-              project.bookmarkedByUser || bookmarked
-                ? "text-blue-500"
-                : "text-slate-500"
-            } hover:bg-blue-50 hover:text-blue-600`}
-          >
-            <Bookmark
-              className="w-4 h-4 mr-1 transition-transform group-hover:scale-110"
-              fill={project.bookmarkedByUser || bookmarked ? "blue" : "none"}
-            />
-          </Button>
-
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleShare}
-            className="text-slate-500 hover:bg-slate-50 hover:text-slate-600"
-          >
-            <Share2 className="w-4 h-4 mr-1" />
-          </Button>
-
-          {project.lookingForContributors && (
-            <Button
-              variant="default"
-              size="sm"
-              onClick={(e) => {
-                e.stopPropagation(); // stop card click
-                handleRequestJoin();
-              }}
-              className="md:ml-auto w-full md:w-auto bg-blue-600 text-white hover:bg-blue-700 transition-colors"
-            >
-              Request to Join
-            </Button>
-          )}
+        {/* Actions */}
+        <div
+          className="flex flex-wrap items-center gap-3 pt-3 border-t border-slate-100"
+          onClick={(e) => e.stopPropagation()} // prevent card navigation
+        >
+          <ProjectActions
+            project={project}
+            isOwner={project.isOwner}
+            onLikeChange={(liked, likes) => {
+              setLiked(liked);
+              setLikes(likes);
+            }}
+            onBookmarkChange={(booked) => setBookmarked(booked)}
+            onToggleComments={() => setShowComments((s) => !s)}
+            redirectJoinToProject={true}
+            navigateToProject={() =>
+              navigate(`/${project.owner.username}/${project.slug}`, {
+                state: { highlightJoin: true },
+              })
+            }
+          />
         </div>
 
+        {/* Comments */}
         {showComments && (
           <div className="mt-2 rounded-xl border border-slate-200 bg-slate-50/60 p-4">
             <CommentSection
               projectId={project._id}
-              onNewComment={() => setCommentsCount((c: number) => c + 1)}
+              onNewComment={() => setCommentsCount((c) => c + 1)}
             />
           </div>
         )}

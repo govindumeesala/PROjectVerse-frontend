@@ -4,6 +4,7 @@ import { create } from "zustand";
 export interface User {
   _id: string;
   name: string;
+  
   email: string;
   idNumber?: string;
   year?: string;
