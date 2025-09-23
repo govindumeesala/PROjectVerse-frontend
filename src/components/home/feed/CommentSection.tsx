@@ -28,7 +28,7 @@ export default function CommentSection({ projectId,onNewComment }: { projectId: 
   });
 
   return (
-    <div className="border-t pt-3 space-y-3">
+    <div className="border-t pt-4 space-y-4">
       {/* Comment input */}
       <div className="flex gap-2">
         <Input
@@ -55,18 +55,28 @@ export default function CommentSection({ projectId,onNewComment }: { projectId: 
           <div className="h-6 bg-slate-100 rounded w-2/3" />
         </div>
       ) : (
-        <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
+        <div className="space-y-3 max-h-64 overflow-y-auto pr-1">
           {comments?.length ? (
             comments.map((c: any) => (
-              <div key={c._id} className="flex items-start gap-2">
-                <img
-                  src={c.user?.profilePhoto || "/default-avatar.png"}
-                  alt={c.user?.name}
-                  className="w-8 h-8 rounded-full"
-                />
-                <div className="bg-white border border-slate-200 rounded-xl px-3 py-2 text-sm shadow-sm">
-                  <span className="font-medium text-slate-800">{c.user?.name}</span>
-                  <p className="text-slate-700">{c.content}</p>
+              <div key={c._id} className="flex items-start gap-3">
+                {c.user?.profilePhoto ? (
+                  <img
+                    src={c.user.profilePhoto}
+                    alt={c.user?.name}
+                    title={c.user?.name}
+                    className="w-9 h-9 rounded-full object-cover border border-slate-200"
+                  />
+                ) : (
+                  <div
+                    className="w-9 h-9 rounded-full bg-slate-200 text-slate-700 flex items-center justify-center font-semibold border border-slate-300"
+                    title={c.user?.name}
+                    aria-label={c.user?.name}
+                  >
+                    {(c.user?.name || "?").charAt(0).toUpperCase()}
+                  </div>
+                )}
+                <div className="flex-1 bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-sm shadow-sm">
+                  <p className="text-slate-800 whitespace-pre-wrap">{c.content}</p>
                 </div>
               </div>
             ))

@@ -108,18 +108,64 @@ export default function ProjectPage() {
 
   return (
     <div className="max-w-7xl mx-auto py-10 px-4 space-y-8">
-      {/* Title */}
-      <div className="flex items-center gap-4 -ml-2">
-        <h1 className="text-3xl font-bold text-gray-900">{project.title}</h1>
-        {isOwner && (
-          <Button
-            variant="outline"
-            className="flex items-center gap-2"
-            onClick={() => setEditMode((v) => !v)}
-          >
-            <Edit className="w-4 h-4" /> {editMode ? "Close Edit" : "Edit"}
-          </Button>
-        )}
+      {/* Header */}
+      <div className="-ml-2">
+        <div className="flex items-center gap-4">
+          <h1 className="text-3xl font-bold text-gray-900">{project.title}</h1>
+          {isOwner && (
+            <Button
+              variant="outline"
+              className="flex items-center gap-2"
+              onClick={() => setEditMode((v) => !v)}
+            >
+              <Edit className="w-4 h-4" /> {editMode ? "Close Edit" : "Edit"}
+            </Button>
+          )}
+        </div>
+        {/* Owner chip */}
+        <div className="mt-3 flex items-center gap-3">
+          {project.owner?.profilePhoto ? (
+            <img
+              src={project.owner.profilePhoto}
+              alt={project.owner?.name}
+              className="w-10 h-10 rounded-full object-cover border border-slate-200"
+            />
+          ) : (
+            <div
+              className="w-10 h-10 rounded-full bg-slate-200 text-slate-700 flex items-center justify-center font-semibold border border-slate-300"
+              title={project.owner?.name}
+              aria-label={project.owner?.name}
+            >
+              {(project.owner?.name || "?").charAt(0).toUpperCase()}
+            </div>
+          )}
+          <div>
+            <Link to={`/${project.owner?.username}`} className="font-medium text-slate-800 hover:underline">
+              {project.owner?.name}
+            </Link>
+            <div className="text-xs text-slate-500">@{project.owner?.username}</div>
+          </div>
+        </div>
+        {/* Meta chips */}
+        <div className="mt-4 flex flex-wrap gap-2">
+          {(Array.isArray(project.domain) ? project.domain : project.domain ? [project.domain] : [])
+            .map((d: string) => (
+              <span key={`domain-${d}`} className="px-3 py-1 rounded-full bg-blue-50 text-blue-700 text-xs border border-blue-200">
+                {d}
+              </span>
+            ))}
+          {(Array.isArray(project.techStack) ? project.techStack : project.techStack ? [project.techStack] : [])
+            .map((t: string) => (
+              <span key={`tech-${t}`} className="px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 text-xs border border-emerald-200">
+                {t}
+              </span>
+            ))}
+          {project.status && (
+            <span className="px-3 py-1 rounded-full bg-purple-50 text-purple-700 text-xs border border-purple-200">
+              {project.status === "ongoing" ? "Ongoing" : "Completed"}
+            </span>
+          )}
+        </div>
       </div>
 
       {/* Edit mode renders full form inline */}
@@ -204,7 +250,21 @@ export default function ProjectPage() {
               <div className="space-y-3">
                 {project.contributors.map((c: any) => (
                   <Link to={`/${c.username}`} key={c._id} className="flex items-center gap-3 hover:bg-slate-50 p-2 rounded-md">
-                    <img src={c.profilePhoto || "/default-avatar.png"} alt={c.name} className="w-10 h-10 rounded-full object-cover" />
+                    {c.profilePhoto ? (
+                      <img
+                        src={c.profilePhoto}
+                        alt={c.name}
+                        className="w-10 h-10 rounded-full object-cover border border-slate-200"
+                      />
+                    ) : (
+                      <div
+                        className="w-10 h-10 rounded-full bg-slate-200 text-slate-700 flex items-center justify-center font-semibold border border-slate-300"
+                        title={c.name}
+                        aria-label={c.name}
+                      >
+                        {(c.name || "?").charAt(0).toUpperCase()}
+                      </div>
+                    )}
                     <div>
                       <p className="font-medium text-sm text-gray-800">{c.name}</p>
                       <p className="text-xs text-gray-500">@{c.username}</p>
@@ -219,29 +279,29 @@ export default function ProjectPage() {
 
           {/* Requests (owner only) moved to sidebar to avoid duplication */}
 
-      {/* Join button (non-owner) */}
-      {!isOwner && (
-        <div className="bg-white rounded-lg shadow p-4">
-          {(() => {
-            const disabled =
-              project.alreadyContributor || alreadyRequested || !project.lookingForContributors;
-            let label = "Request to Join";
-            if (project.alreadyContributor) label = "Already a contributor";
-            else if (alreadyRequested) label = "Request Sent";
-            else if (!project.lookingForContributors) label = "Not accepting contributors";
-            return (
-              <Button
-                ref={joinButtonRef}
-                onClick={() => setJoinDialogOpen(true)}
-                disabled={disabled}
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white disabled:opacity-50"
-              >
-                {label}
-              </Button>
-            );
-          })()}
-        </div>
-      )}
+          {/* Join button (non-owner) */}
+          {!isOwner && (
+            <div className="bg-white rounded-lg shadow p-4">
+              {(() => {
+                const disabled =
+                  project.alreadyContributor || alreadyRequested || !project.lookingForContributors;
+                let label = "Request to Join";
+                if (project.alreadyContributor) label = "Already a contributor";
+                else if (alreadyRequested) label = "Request Sent";
+                else if (!project.lookingForContributors) label = "Not accepting contributors";
+                return (
+                  <Button
+                    ref={joinButtonRef}
+                    onClick={() => setJoinDialogOpen(true)}
+                    disabled={disabled}
+                    className="w-full bg-blue-600 hover:bg-blue-700 text-white disabled:opacity-50"
+                  >
+                    {label}
+                  </Button>
+                );
+              })()}
+            </div>
+          )}
 
       {/* Sidebar */}
       <ProjectSidebar

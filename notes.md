@@ -51,11 +51,10 @@ Collaborator avatars → mini preview of who’s inside the project (like GitHub
 12. session expired please login toast when opening website **********************************
 
 ### Profile page
-1. Request to Join button state and disable
-2. contributors route
-3. RequestToJoin responses render
-4. likes and comment count and liked or bookmarked
-
+1. Request to Join button state and disable - done
+2. contributors route - done
+3. RequestToJoin responses render - done
+4. likes and comment count and liked or bookmarked - done
 
 
 
