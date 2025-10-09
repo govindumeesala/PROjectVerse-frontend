@@ -48,7 +48,12 @@ Collaborator avatars → mini preview of who’s inside the project (like GitHub
 9. looking for  collaboration
 10. skeleton on homepage
 11. Links for url
-12. session expired please login toast when opening website **********************************
+12. session expired please login toast when opening website 
+like not working - api failing
+comments not loading - api failing 
+create project form - project title validation is not working (frontend issue)
+create project api not working 
+**********************************
 
 ### Profile page
 1. Request to Join button state and disable - done
@@ -73,3 +78,7 @@ Collaborator avatars → mini preview of who’s inside the project (like GitHub
 ## Projects
 2. A project card with like,comment,share  on bottom projectname,description,techStack,domain,githubURL photo if present on bottom.
 On clicking the photo card, 
+
+# usassigned
+
+1. separate hooks from api file (just as sudheer did for useProject hook) - current api file is getting too long and cluttered with the mix api and hooks

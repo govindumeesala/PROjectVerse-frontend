@@ -71,7 +71,7 @@ export const useUpdateMyProfile = () => {
     mutationFn: (userData: FormData) => updateMyProfile(userData),
     onSuccess: () => {
       toast.success("Profile updated");
-      queryClient.invalidateQueries({ queryKey: ["me"] });
+      queryClient.invalidateQueries({ queryKey: ["user"] });
     },
     onError: (err: any) => {
       const msg = err?.response?.data?.message || "Failed to update profile";
