@@ -88,10 +88,8 @@ export const CreateProjectForm = ({
   onSuccess?: () => void;
 }) => {
   const { createProject, isPending: isCreating } = useCreateProject();
-  const { mutateAsync: updateProject, isPending: isUpdating } = useUpdateProject(
-    username || "",
-    slug || ""
-  );
+  const { mutateAsync: updateProject, isPending: isUpdating } =
+    useUpdateProject(username || "", slug || "");
   const { users = [], isPending: isUsersLoading } = useGetAllUsers();
 
   const form = useForm<FormValues>({
@@ -125,9 +123,9 @@ export const CreateProjectForm = ({
       setIsCheckingTitle(true);
       try {
         const result = await checkTitle(title);
-        setIsTitleAvailable(result.available);
+        setIsTitleAvailable(result.data.available);
         setWasTitleChecked(true);
-        if (!result.available) {
+        if (!result.data.available) {
           form.setError("title", {
             type: "manual",
             message: "This project title is already taken",
@@ -210,18 +208,35 @@ export const CreateProjectForm = ({
           const fd = new FormData();
           fd.append("title", data.title);
           fd.append("description", data.description);
-          // Append arrays by repeating the same key; multer will aggregate into arrays
-          (data.domain || []).forEach((d: string) => fd.append("domain", d));
-          (data.techStack || []).forEach((t: string) => fd.append("techStack", t));
+          // Normalize arrays defensively
+          const normDomain = Array.isArray(data.domain)
+            ? data.domain
+            : data.domain
+            ? [data.domain as unknown as string]
+            : [];
+          const normTech = Array.isArray(data.techStack)
+            ? data.techStack
+            : data.techStack
+            ? [data.techStack as unknown as string]
+            : [];
+          const normContrib = Array.isArray(data.contributors)
+            ? data.contributors
+            : data.contributors
+            ? [data.contributors as unknown as string]
+            : [];
+          // Append arrays by repeating the same key with [] to force array on backend parsers
+          normDomain.forEach((d: string) => fd.append("domain[]", d));
+          normTech.forEach((t: string) => fd.append("techStack[]", t));
           fd.append("status", data.status);
           fd.append(
             "lookingForContributors",
             data.lookingForContributors ? "true" : "false"
           );
-          (data.contributors || []).forEach((c: string) => fd.append("contributors", c));
+          normContrib.forEach((c: string) => fd.append("contributors[]", c));
           fd.append("projectPhoto", data.projectPhoto);
           if (data.githubURL) fd.append("githubURL", data.githubURL);
-          if (data.deploymentURL) fd.append("deploymentURL", data.deploymentURL);
+          if (data.deploymentURL)
+            fd.append("deploymentURL", data.deploymentURL);
           // Backend expects additionalURL
           if (data.demoURL) fd.append("additionalURL", data.demoURL);
 
@@ -238,16 +253,32 @@ export const CreateProjectForm = ({
           const fd = new FormData();
           fd.append("title", data.title);
           fd.append("description", data.description);
-          (data.domain || []).forEach((d: string) => fd.append("domain", d));
-          (data.techStack || []).forEach((t: string) => fd.append("techStack", t));
+          const normDomain = Array.isArray(data.domain)
+            ? data.domain
+            : data.domain
+            ? [data.domain as unknown as string]
+            : [];
+          const normTech = Array.isArray(data.techStack)
+            ? data.techStack
+            : data.techStack
+            ? [data.techStack as unknown as string]
+            : [];
+          const normContrib = Array.isArray(data.contributors)
+            ? data.contributors
+            : data.contributors
+            ? [data.contributors as unknown as string]
+            : [];
+          normDomain.forEach((d: string) => fd.append("domain[]", d));
+          normTech.forEach((t: string) => fd.append("techStack[]", t));
           fd.append("status", data.status);
           fd.append(
             "lookingForContributors",
             data.lookingForContributors ? "true" : "false"
           );
-          (data.contributors || []).forEach((c: string) => fd.append("contributors", c));
+          normContrib.forEach((c: string) => fd.append("contributors[]", c));
           if (data.githubURL) fd.append("githubURL", data.githubURL);
-          if (data.deploymentURL) fd.append("deploymentURL", data.deploymentURL);
+          if (data.deploymentURL)
+            fd.append("deploymentURL", data.deploymentURL);
           if (data.demoURL) fd.append("additionalURL", data.demoURL);
 
           await createProject(fd);
@@ -608,7 +639,34 @@ export const CreateProjectForm = ({
                       <FormControl>
                         <label
                           htmlFor="project-photo-upload"
-                          className="flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-lg cursor-pointer p-8 bg-gray-50 hover:bg-orange-50 transition-colors group"
+                          className="flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-lg cursor-pointer p-8 bg-gray-50 hover:bg-orange-50 transition-colors group relative"
+                          onDragOver={(e) => {
+                            e.preventDefault();
+                            e.currentTarget.classList.add(
+                              "border-orange-400",
+                              "bg-orange-50"
+                            );
+                          }}
+                          onDragLeave={(e) => {
+                            e.preventDefault();
+                            e.currentTarget.classList.remove(
+                              "border-orange-400",
+                              "bg-orange-50"
+                            );
+                          }}
+                          onDrop={(e) => {
+                            e.preventDefault();
+                            e.currentTarget.classList.remove(
+                              "border-orange-400",
+                              "bg-orange-50"
+                            );
+                            if (
+                              e.dataTransfer.files &&
+                              e.dataTransfer.files[0]
+                            ) {
+                              field.onChange(e.dataTransfer.files[0]);
+                            }
+                          }}
                         >
                           <UploadCloud className="w-12 h-12 mb-3 text-orange-400 group-hover:text-orange-500 transition-colors" />
                           <span className="font-medium text-gray-700 mb-1">
@@ -629,10 +687,20 @@ export const CreateProjectForm = ({
                               field.onChange(e.target.files?.[0])
                             }
                           />
-                          {field.value && typeof field.value !== "string" && (
-                            <span className="mt-2 text-sm text-emerald-600 font-medium">
-                              ✓ {field.value.name}
-                            </span>
+
+                          {/* ✅ Preview */}
+                          {field.value && (
+                            <div className="mt-4">
+                              <img
+                                src={
+                                  typeof field.value === "string"
+                                    ? field.value // existing URL (e.g. editing mode)
+                                    : URL.createObjectURL(field.value) // new file
+                                }
+                                alt="Preview"
+                                className="max-h-40 rounded-lg border border-gray-200 shadow-sm"
+                              />
+                            </div>
                           )}
                         </label>
                       </FormControl>

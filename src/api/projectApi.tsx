@@ -186,7 +186,9 @@ export const unlikeProject = async (projectId: string) => {
 };
 
 
-export const checkProjectTitle = async (title: string): Promise<{ available: boolean }> => {
+export const checkProjectTitle = async (title: string): Promise<{
+  data: any; available: boolean 
+}> => {
   const response = await api.post(ENDPOINTS.PROJECT.CHECK_TITLE, { title });
   return response.data;
 };

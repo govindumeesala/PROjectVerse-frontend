@@ -38,6 +38,22 @@ api.interceptors.response.use(
     const status = error?.response?.status;
 
     if (status === 401 && !originalRequest._retry) {
+      // If this is a retry after a failed refresh, show login message
+      if (originalRequest.url?.includes('/auth/refresh')) {
+        const { clearAccessToken } = useAuthStore.getState();
+        clearAccessToken();
+        // Only show the toast if we're in the browser (not during SSR)
+        if (typeof window !== 'undefined') {
+          import('sonner').then(({ toast }) => {
+            toast.error('Session expired', {
+              description: 'Please log in again to continue',
+              duration: 5000,
+            });
+          });
+        }
+        return Promise.reject(error);
+      }
+
       if (isRefreshing) {
         return new Promise((resolve, reject) => {
           failedQueue.push({

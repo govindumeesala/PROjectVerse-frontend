@@ -44,15 +44,15 @@ Collaborator avatars → mini preview of who’s inside the project (like GitHub
 
 # TASKS FOR SUDHEER
 # create project 
-8. Drag and drop working in create-project form.
-9. looking for  collaboration
-10. skeleton on homepage
-11. Links for url
+8. Drag and drop working in create-project form. - done
+9. looking for  collaboration - done
+10. skeleton on homepage - done
+11. Links for url 
 12. session expired please login toast when opening website 
 like not working - api failing
 comments not loading - api failing 
-create project form - project title validation is not working (frontend issue)
-create project api not working 
+create project form - project title validation is not working (frontend issue) - done
+create project api not working  - done
 **********************************
 
 ### Profile page

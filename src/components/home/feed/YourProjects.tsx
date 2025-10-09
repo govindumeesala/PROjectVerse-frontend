@@ -50,10 +50,10 @@ const YourProjects: React.FC = () => {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-semibold text-slate-800">Your Projects</h2>
-        <button className="px-3 py-1 text-sm bg-green-600 text-white rounded-md hover:bg-green-700 transition flex items-center gap-1">
+        {/* <button className="px-3 py-1 text-sm bg-green-600 text-white rounded-md hover:bg-green-700 transition flex items-center gap-1">
           <Plus className="w-4 h-4" />
           New
-        </button>
+        </button> */}
       </div>
       
       <div className="space-y-1">
