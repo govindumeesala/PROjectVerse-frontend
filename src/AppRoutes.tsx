@@ -6,6 +6,7 @@ import ProfilePage from "@/pages/ProfilePage";
 import CollabPage from "@/pages/CollabPage";
 import LoginSignupPage from "@/pages/LoginSignupPage";
 import ProjectPage from "./pages/ProjectPage";
+import NotificationsPage from "@/pages/NotificationsPage";
 
 const AppRoutes = () => {
   return (
@@ -51,6 +52,14 @@ const AppRoutes = () => {
         element={
           <Layout>
             <ProjectPage />
+          </Layout>
+        }
+      />
+      <Route
+        path="/notifications"
+        element={
+          <Layout>
+            <NotificationsPage />
           </Layout>
         }
       />

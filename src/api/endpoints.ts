@@ -37,5 +37,11 @@ export const ENDPOINTS = {
     REQUEST_TO_JOIN: (username: string, projectSlug: string) => `${BASE_API}/project/${username}/${projectSlug}/join`,
     RESPOND_TO_REQUEST: (username: string, projectSlug: string, requestId: string) => `${BASE_API}/project/${username}/${projectSlug}/respond-to-request/${requestId}`
   },
+  NOTIFICATIONS: {
+    LIST: `${BASE_API}/notifications`,
+    UNREAD_COUNT: `${BASE_API}/notifications/unread-count`,
+    MARK_READ: (id: string) => `${BASE_API}/notifications/${id}/read`,
+    MARK_ALL_READ: `${BASE_API}/notifications/read-all`,
+  },
   // Add other resource endpoints as needed
 };

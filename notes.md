@@ -82,3 +82,9 @@ On clicking the photo card,
 # usassigned
 
 1. separate hooks from api file (just as sudheer did for useProject hook) - current api file is getting too long and cluttered with the mix api and hooks
+
+2. Add create project button in side bar
+
+3. on trying to add comments on home page, it is not working 
+
+4. 

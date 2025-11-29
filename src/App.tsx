@@ -4,6 +4,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/sonner";
 import AppRoutes from "./AppRoutes";
 import { useAuthInit } from "./hooks/useAuthInit";
+import { useNotificationSocket } from "./hooks/useNotificationSocket";
 import { Bouncy } from 'ldrs/react';
 import 'ldrs/react/Bouncy.css';
 

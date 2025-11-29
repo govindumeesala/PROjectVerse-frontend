@@ -20,6 +20,7 @@ import { Separator } from "./ui/separator";
 import { Button } from "@/components/ui/button";
 import { useLogoutUser } from "@/api/authApi";
 import { useUserStore } from "@/store/useUserStore";
+import NotificationBell from "@/components/notifications/NotificationBell";
 
 // Avatar component
 const Avatar: React.FC<{
@@ -150,6 +151,9 @@ const Navbar: React.FC = () => {
                 <span className="hidden md:inline">Create Project</span>
               </Link>
             )}
+
+            {/* Notification Bell */}
+            {isLoggedIn && <NotificationBell />}
 
             {/* Profile / Login Section */}
             {isLoggedIn && user ? (

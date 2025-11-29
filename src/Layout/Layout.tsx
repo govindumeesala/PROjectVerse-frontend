@@ -1,11 +1,15 @@
 import Footer from "../components/Footer";
 import Navbar from "../components/Navbar";
+import { useNotificationSocket } from "@/hooks/useNotificationSocket";
 
 type Props = {
   children: React.ReactNode;
 };
 
 const Layout = ({ children}: Props) => {
+  // Initialize Socket.IO connection and notification listeners
+  useNotificationSocket();
+
   return (
     <div className="flex flex-col min-h-screen">
       <Navbar/>
