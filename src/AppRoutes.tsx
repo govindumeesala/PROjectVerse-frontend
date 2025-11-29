@@ -12,7 +12,7 @@ const AppRoutes = () => {
   return (
     <Routes>
       <Route
-        path="/"
+        path="/home"
         element={
           <Layout>
             <HomePage />
@@ -20,7 +20,7 @@ const AppRoutes = () => {
         }
       />
 
-      <Route path="/auth/login" element={<LoginSignupPage />} />
+      <Route path="/" element={<LoginSignupPage />} />
 
       <Route
         path="/create-project"

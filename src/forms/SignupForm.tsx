@@ -5,7 +5,7 @@ import { useState } from "react";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, User, Mail, Lock, Loader2 } from "lucide-react";
 import { useSignupUser, useCheckUsername } from "@/api/authApi";
 import { debounce } from "lodash";
 import { UsernameInput } from "@/components/signup/UsernameInput";
@@ -70,18 +70,27 @@ export const SignupForm = () => {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5 p-6 rounded-lg shadow-lg border bg-white">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
         {/* Name Field */}
         <FormField
           control={form.control}
           name="name"
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="font-medium">Name</FormLabel>
+              <FormLabel className="text-sm font-semibold text-gray-700">
+                Full Name
+              </FormLabel>
               <FormControl>
-                <Input placeholder="Your name" {...field} />
+                <div className="relative">
+                  <User className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                  <Input 
+                    placeholder="Your full name" 
+                    {...field} 
+                    className="pl-10 h-11 bg-white/80 border-gray-200 focus:border-blue-500 focus:ring-blue-500/20 transition-all"
+                  />
+                </div>
               </FormControl>
-              <FormMessage />
+              <FormMessage className="text-xs" />
             </FormItem>
           )}
         />
@@ -92,10 +101,10 @@ export const SignupForm = () => {
           name="username"
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="font-medium">
+              <FormLabel className="text-sm font-semibold text-gray-700">
                 Username
                 {wasUsernameChecked && isUsernameAvailable && (
-                  <span className="ml-2 text-sm text-green-600">Available!</span>
+                  <span className="ml-2 text-xs font-normal text-green-600">✓ Available</span>
                 )}
               </FormLabel>
               <FormControl>
@@ -112,7 +121,7 @@ export const SignupForm = () => {
                   }}
                 />
               </FormControl>
-              <FormMessage />
+              <FormMessage className="text-xs" />
             </FormItem>
           )}
         />
@@ -123,11 +132,20 @@ export const SignupForm = () => {
           name="email"
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="font-medium">Email</FormLabel>
+              <FormLabel className="text-sm font-semibold text-gray-700">
+                Email Address
+              </FormLabel>
               <FormControl>
-                <Input placeholder="you@example.com" {...field} />
+                <div className="relative">
+                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                  <Input 
+                    placeholder="you@example.com" 
+                    {...field} 
+                    className="pl-10 h-11 bg-white/80 border-gray-200 focus:border-blue-500 focus:ring-blue-500/20 transition-all"
+                  />
+                </div>
               </FormControl>
-              <FormMessage />
+              <FormMessage className="text-xs" />
             </FormItem>
           )}
         />
@@ -138,25 +156,28 @@ export const SignupForm = () => {
           name="password"
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="font-medium">Password</FormLabel>
+              <FormLabel className="text-sm font-semibold text-gray-700">
+                Password
+              </FormLabel>
               <FormControl>
                 <div className="relative">
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
                   <Input
                     type={showPassword ? "text" : "password"}
-                    placeholder="********"
+                    placeholder="Create a strong password"
                     {...field}
-                    className="pr-10"
+                    className="pl-10 pr-10 h-11 bg-white/80 border-gray-200 focus:border-blue-500 focus:ring-blue-500/20 transition-all"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword((prev) => !prev)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
                   >
                     {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                   </button>
                 </div>
               </FormControl>
-              <FormMessage />
+              <FormMessage className="text-xs" />
             </FormItem>
           )}
         />
@@ -165,9 +186,16 @@ export const SignupForm = () => {
         <Button
           type="submit"
           disabled={isPending}
-          className="w-full bg-blue-900 hover:bg-blue-800 transition-colors"
+          className="w-full h-11 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 hover:from-blue-700 hover:via-indigo-700 hover:to-purple-700 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {isPending ? "Signing Up..." : "Sign Up"}
+          {isPending ? (
+            <>
+              <Loader2 className="h-4 w-4 animate-spin mr-2" />
+              Signing Up...
+            </>
+          ) : (
+            "Sign Up"
+          )}
         </Button>
       </form>
     </Form>
