@@ -1,5 +1,5 @@
 import { Input } from "@/components/ui/input";
-import { Check, Loader2, X } from "lucide-react";
+import { Check, Loader2, X, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { validateUsername } from "./UsernameValidation";
 import { FormMessage } from "@/components/ui/form";
@@ -25,15 +25,16 @@ export const UsernameInput = ({
   return (
     <div className="space-y-1">
       <div className="relative">
+        <User className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 z-10" />
         <Input
           {...field}
           placeholder="Choose a unique username"
           onChange={onChangeWithCheck}
           className={cn(
-            "pr-10",
+            "pl-10 pr-10 h-11 bg-white/80 border-gray-200 focus:border-blue-500 focus:ring-blue-500/20 transition-all",
             wasChecked &&
               !showValidation &&
-              (isAvailable ? "border-green-500" : "border-red-500")
+              (isAvailable ? "border-green-500 focus:border-green-500" : "border-red-500 focus:border-red-500")
           )}
         />
         <div className="absolute right-3 top-1/2 -translate-y-1/2">
@@ -52,7 +53,7 @@ export const UsernameInput = ({
       {/* Show validation messages only when there are errors */}
       {showValidation &&
         errors.map((error, index) => (
-          <FormMessage key={index}>{error}</FormMessage>
+          <FormMessage key={index} className="text-xs">{error}</FormMessage>
         ))}
     </div>
   );
